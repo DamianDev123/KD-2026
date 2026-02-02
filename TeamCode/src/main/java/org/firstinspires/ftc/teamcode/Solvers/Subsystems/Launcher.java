@@ -120,7 +120,7 @@ public class Launcher extends SubsystemBase {
             double dx = robot.GoalPose.getX() - robot.follower.getPose().getX();
             double dy = robot.GoalPose.getY() - robot.follower.getPose().getY();
             distance = Math.sqrt(dx * dx + dy * dy);
-            tolerable = errorAbs < 40;
+            tolerable = errorAbs < 100;
         robot.dashboardTelemetry.addData("Distance", distance);
         robot.dashboardTelemetry.addData("goal", targetFlywheelVelocity);
             updateFlywheel();
