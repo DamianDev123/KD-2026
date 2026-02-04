@@ -46,11 +46,11 @@ public class Constants {
 
     public static final double GRAVITY = 9.81; // meters/second
     public static double LAUNCHER_HEIGHT =10.5*DistanceUnit.mPerInch; // meters // 13 inches
-    public static  double TARGET_HEIGHT =1.0; // meters
+    public static  double TARGET_HEIGHT =1; // meters
     public static double LAUNCHER_MAX_BALL_VELOCITY = 12; // Meters/second // TODO: tune this to potentially be lower
-    public static double GOAL_LIP = 0.45; // Meters
-    public static double BACKBOARD_Y_OFFSET = 0.1; // Meters
-    public static double LIP_BUFFER = 0.12; // Meters
+    public static double GOAL_LIP = 1; // Meters
+    public static double BACKBOARD_Y_OFFSET = 0.2; // Meters
+    public static double LIP_BUFFER = 0.1; // Meters
 
     public static boolean autoInitialized = false;
     public static boolean shootingWhileMoving = false;

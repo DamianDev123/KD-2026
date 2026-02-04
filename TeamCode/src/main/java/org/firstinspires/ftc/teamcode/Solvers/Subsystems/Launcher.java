@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
-import com.seattlesolvers.solverslib.util.TelemetryData;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -25,7 +24,7 @@ import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 
 @Config
 public class Launcher extends SubsystemBase {
-    public static PIDCoefficients FLYWHEEL_PID_COEFFICIENTS = new PIDCoefficients(0.006, 0, 0); // Coefficients for ticks
+    public static PIDCoefficients FLYWHEEL_PID_COEFFICIENTS = new PIDCoefficients(0.03, 0, 0); // Coefficients for ticks
     public static BasicFeedforwardParameters FLYWHEEL_FF_COEFFICIENTS = new BasicFeedforwardParameters
             (0.00039, 0,  0.08); // Coefficients for ticks
     private final Robot robot = Robot.getInstance();
@@ -37,8 +36,10 @@ public class Launcher extends SubsystemBase {
     public static double targetHoodAngle = MIN_HOOD_ANGLE;
 
     public static double vFeedback = 0;
-    TelemetryData telemetryData;
     public static boolean isFlapOpen = false;
+    FtcDashboard dashboard = FtcDashboard.getInstance();
+    public Telemetry dashboardTelemetry = dashboard.getTelemetry();
+
     public static boolean activeControl = false;
     public static double tolerances = 100;
     public double errorAbs;
@@ -63,7 +64,6 @@ public class Launcher extends SubsystemBase {
 
             .build();
     public Launcher() {
-        telemetryData = robot.telemetryData;
         timer.startTime();
         timer.reset();
     }
@@ -116,17 +116,19 @@ public class Launcher extends SubsystemBase {
             errorAbs = Math.abs(error);
             robot.flapServo.set(isFlapOpen ? 0.05 : 0.86);
             inTolerance = errorAbs < tolerances;
-            robot.dashboardTelemetry.addData("vel", robot.launchEncoder.getCorrectedVelocity());
             double dx = robot.GoalPose.getX() - robot.follower.getPose().getX();
             double dy = robot.GoalPose.getY() - robot.follower.getPose().getY();
             distance = Math.sqrt(dx * dx + dy * dy);
-            tolerable = errorAbs < 100;
-        robot.dashboardTelemetry.addData("Distance", distance);
-        robot.dashboardTelemetry.addData("goal", targetFlywheelVelocity);
+            dashboardTelemetry.addData("Distance", distance);
+            dashboardTelemetry.addData("Hood", targetHoodAngle);
+            dashboardTelemetry.addData("AVelocity", robot.launchEncoder.getCorrectedVelocity());
+            dashboardTelemetry.addData("Velocity", targetFlywheelVelocity);
+            dashboardTelemetry.update();
+            tolerable = errorAbs < 60;
             updateFlywheel();
             if(!isFlapOpen)
                 timer.reset();
-            flapOpen = timer.milliseconds()>100;
+            flapOpen = timer.milliseconds()>370;
 
         robot.profiler.end("Launch Loop");
 
@@ -143,20 +145,21 @@ public class Launcher extends SubsystemBase {
             double vel = getFlywheelTicksFromVelocity(targetFlywheelVelocityIn);
             if (Double.isNaN(s[1]))
                 s[1] = 19;
+            double x = distance;
             if (doHood) {
                 if (tuning)
                     targetHoodAngle = MeasureHood - error * vFeedback + 1;
                 else
-                    targetHoodAngle = s[1];
+                    //targetHoodAngle = -0.00216786*x*x+0.495824*x+16.06914;
+                    targetHoodAngle = s[1]+5;
 
             }
             if (doFlywheel) {
                 if (tuning)
                     targetFlywheelVelocity = MeasureVel;
                 else {
+                    //targetFlywheelVelocity = 5.89651*x+714.49485-70;
                     targetFlywheelVelocity = vel;
-                    if (robot.turret.getRunningAuto())
-                        targetFlywheelVelocity = vel;
                 }
                 doPid = true;
             } else {

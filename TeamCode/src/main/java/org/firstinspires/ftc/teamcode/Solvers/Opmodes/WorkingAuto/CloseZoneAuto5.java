@@ -47,11 +47,11 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
     private Pose startPose   = new Pose(121.0, 121.0, Math.toRadians(0));
     private Pose launchZone  = new Pose(83.5 , 75.0);
-    private Pose launchZone2  = new Pose(93 , 83);
+    private Pose launchZone2  = new Pose(93 , 78);
     private Pose row1        = new Pose(130.000, 36.500);
     private Pose row2        = new Pose(130.000, 59.500);
     private Pose row3        = new Pose(120.000, 83.500);
-    private Pose gate        = new Pose(135, 60);
+    private Pose gate        = new Pose(136, 63);
 
     /* ------------------- Control Points ------------------- */
 
@@ -66,7 +66,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
     private Pose cpGateIn  =  new Pose(113.35076923076922, 57);
 
     private double intakeHeading = 0.0;
-    private double gateHeading = 30.0;
+    private double gateHeading = 20.0;
 
     /* ------------------- Alliance Mirroring ------------------- */
 
@@ -159,7 +159,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
         ).build();
 
         toLaunchGate = follower.pathBuilder().addPath(
-                new BezierCurve(
+                new BezierLine(
                         gate,
                         launchZone
                 )
@@ -168,7 +168,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
                 Math.toRadians(gateHeading)
         ).build();
         toLaunchGate2 = follower.pathBuilder().addPath(
-                new BezierCurve(
+                new BezierLine(
                       gate,
                         launchZone2
                 )
@@ -210,9 +210,9 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
                 new InstantCommand(() -> Constants.shootingWhileMoving = true),
                 new FollowPathCommand(follower, toLaunch, true).alongWith(new ShootBalls()),
-                new InstantCommand(() -> Constants.shootingWhileMoving = false),
-
                 new InstantCommand(() -> robot.intake.intake(true)),
+
+                new InstantCommand(() -> Constants.shootingWhileMoving = false),
                 new FollowPathCommand(follower, toRow2).interruptOn(robot.intake.supplier),
                 new FollowPathCommand(follower, toLaunchZoneRow2, true)
                         .halfWay(
@@ -257,7 +257,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
         schedule(autonomousSequence);
     }
-    public BooleanSupplier nearEnd = ()-> follower.getCurrentTValue()>0.8;
+    public BooleanSupplier nearEnd = ()-> follower.getCurrentTValue()>0.7;
     @Override
     public void run() {
         super.run();

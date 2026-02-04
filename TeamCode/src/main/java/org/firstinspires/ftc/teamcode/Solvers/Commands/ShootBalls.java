@@ -49,7 +49,7 @@ public class ShootBalls extends CommandBase {
         robot.turret.shouldAim = true;
         robot.launcher.doFlywheel = true;
         Launcher.activeControl = true;
-        if(robot.launcher.inTolerance && Launcher.targetFlywheelVelocity!=0&&robot.turret.tolerable){
+        if(robot.launcher.inTolerance && Launcher.targetFlywheelVelocity!=0&&robot.turret.tolerable && robot.launcher.flapOpen){
             robot.intake.intake(true);
             if(!initialized){
                 elapsedTime.reset();

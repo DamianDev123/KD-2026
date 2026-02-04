@@ -19,7 +19,7 @@ public class WaitFull extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return Storage.full || time.milliseconds()>1000;
+        return Storage.full || time.milliseconds()>1900;
     }
 
     @Override

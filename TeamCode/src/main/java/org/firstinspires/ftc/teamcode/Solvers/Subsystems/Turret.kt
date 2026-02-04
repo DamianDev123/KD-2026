@@ -5,9 +5,6 @@ import com.pedropathing.follower.Follower
 import com.qualcomm.robotcore.util.ElapsedTime
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx
 import com.seattlesolvers.solverslib.util.TelemetryData
-import org.firstinspires.ftc.teamcode.Globals.Constants.redTurretGoalPose
-import org.firstinspires.ftc.teamcode.Globals.Constants.redX
-import org.firstinspires.ftc.teamcode.Globals.Constants.redY
 import org.firstinspires.ftc.teamcode.Globals.Robot
 import org.firstinspires.ftc.teamcode.Solvers.CommandBase.Subsystem
 import org.firstinspires.ftc.teamcode.Solvers.Opmodes.testOp
@@ -66,7 +63,7 @@ class Turret : Subsystem() {
     }
     private fun CalculateGoal(): Double {
 
-        var mu = atan2( redY - ShootingWhileMoving.predictedPose.y, redX- ShootingWhileMoving.predictedPose.x)
+        var mu = atan2( robot.GoalPose.y - ShootingWhileMoving.predictedPose.y, robot.GoalPose.x- ShootingWhileMoving.predictedPose.x)
         var deltaHeading = Math.toDegrees(mu) - Math.toDegrees(robot.pose.heading)
         return deltaHeading.coerceIn(-90.0,90.0);
     }

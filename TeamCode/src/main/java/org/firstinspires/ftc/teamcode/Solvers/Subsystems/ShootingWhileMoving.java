@@ -93,12 +93,12 @@ public class ShootingWhileMoving extends SubsystemBase {
             robot.telemetryData.addData("tof", tof);
             predictedPose = new Pose(
                     currentPose.getX()
-                            + vel.getXComponent() * tof
-                            + 0.5 * accel.getXComponent() * tof * tof,
+                            + vel.getXComponent() * tof,
+                           // + 0.5 * accel.getXComponent() * tof * tof,
 
                     currentPose.getY()
-                            + vel.getYComponent() * tof
-                            + 0.5 * accel.getYComponent() * tof * tof,
+                            + vel.getYComponent() * tof,
+                            //+ 0.5 * accel.getYComponent() * tof * tof,
                     currentPose.getHeading() + angular * tof
 
             );

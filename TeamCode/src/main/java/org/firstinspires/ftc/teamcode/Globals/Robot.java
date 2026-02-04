@@ -89,6 +89,7 @@ public class Robot extends com.seattlesolvers.solverslib.command.Robot {
     public Storage storage;
     public ShootingWhileMoving shootingWhileMoving;
     public LynxModule ex;
+    public List<LynxModule> hubs;
     HardwareMap.DeviceMapping<VoltageSensor> voltageSensor = null;
 
     public static Robot getInstance() {
@@ -103,7 +104,7 @@ public class Robot extends com.seattlesolvers.solverslib.command.Robot {
         long timestamp = System.currentTimeMillis();
         file = new File(logsFolder, "profiler-" + timestamp + ".csv");
         List<LynxModule> allHubs = hwMap.getAll(LynxModule.class);
-
+        hubs = allHubs;
         profiler = Profiler.builder()
                 .factory(new BasicProfilerEntryFactory())
                 .exporter(new CSVProfilerExporter(file))

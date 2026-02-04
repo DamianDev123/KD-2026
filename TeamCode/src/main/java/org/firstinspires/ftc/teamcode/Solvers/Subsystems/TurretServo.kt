@@ -20,7 +20,6 @@ class TurretServo : SubsystemBase() {
     var turretServo2: ServoEx = robot.turretServo2
     var turretServo1: ServoEx = robot.turretServo1
     var follower: Follower = robot.follower
-    var dashboardTelemetry: Telemetry = robot.dashboardTelemetry;
     companion object Constants {
         @JvmField
         val velPIDCoefficients = PIDCoefficients(0.0,0.0,0.0)
@@ -47,8 +46,6 @@ class TurretServo : SubsystemBase() {
         update()
     }
     fun update(){
-        dashboardTelemetry.addData("TargetVel", targetVel)
-        dashboardTelemetry.addData("CurrentVel", turretEncoder.correctedVelocity)
         posControl.goal = KineticState(targetPos);
         var calc = posControl.calculate(KineticState(turretEncoder.position*1.0))
         if(tuningVel)
