@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Solvers.Opmodes;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -8,7 +7,6 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 
-@Config
 @TeleOp
 public class testOp4 extends OpMode {
     public static double power1 = 0.0;

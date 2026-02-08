@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems;
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
@@ -21,8 +21,7 @@ import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.control.feedback.PIDCoefficients;
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
-
-@Config
+@Configurable
 public class Launcher extends SubsystemBase {
     public static PIDCoefficients FLYWHEEL_PID_COEFFICIENTS = new PIDCoefficients(0.03, 0, 0); // Coefficients for ticks
     public static BasicFeedforwardParameters FLYWHEEL_FF_COEFFICIENTS = new BasicFeedforwardParameters
@@ -37,11 +36,10 @@ public class Launcher extends SubsystemBase {
 
     public static double vFeedback = 0;
     public static boolean isFlapOpen = false;
-    FtcDashboard dashboard = FtcDashboard.getInstance();
-    public Telemetry dashboardTelemetry = dashboard.getTelemetry();
-
     public static boolean activeControl = false;
     public static double tolerances = 100;
+    public static Boolean preload= false;
+    public static Pose preloadPos = new Pose();
     public double errorAbs;
     public double error = 0;
     public boolean inTolerance = false;
@@ -116,14 +114,9 @@ public class Launcher extends SubsystemBase {
             errorAbs = Math.abs(error);
             robot.flapServo.set(isFlapOpen ? 0.05 : 0.86);
             inTolerance = errorAbs < tolerances;
-            double dx = robot.GoalPose.getX() - robot.follower.getPose().getX();
-            double dy = robot.GoalPose.getY() - robot.follower.getPose().getY();
+            double dx = ShootingWhileMoving.goalP.getX() - robot.CurrentPose.getX();
+            double dy = ShootingWhileMoving.goalP.getY() - robot.CurrentPose.getY();
             distance = Math.sqrt(dx * dx + dy * dy);
-            dashboardTelemetry.addData("Distance", distance);
-            dashboardTelemetry.addData("Hood", targetHoodAngle);
-            dashboardTelemetry.addData("AVelocity", robot.launchEncoder.getCorrectedVelocity());
-            dashboardTelemetry.addData("Velocity", targetFlywheelVelocity);
-            dashboardTelemetry.update();
             tolerable = errorAbs < 60;
             updateFlywheel();
             if(!isFlapOpen)

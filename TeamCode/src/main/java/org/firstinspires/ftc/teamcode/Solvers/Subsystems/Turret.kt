@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems
 
-import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.follower.Follower
 import com.qualcomm.robotcore.util.ElapsedTime
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx
@@ -10,8 +9,6 @@ import org.firstinspires.ftc.teamcode.Solvers.CommandBase.Subsystem
 import org.firstinspires.ftc.teamcode.Solvers.Opmodes.testOp
 import kotlin.math.atan2
 
-
-@Config
 class Turret : Subsystem() {
     private val robot: Robot = Robot.getInstance()
     var telemetryData: TelemetryData = robot.telemetryData
@@ -48,7 +45,7 @@ class Turret : Subsystem() {
             turretServo2.set(servoPosition)
             val error = Math.abs(robot.turretEncoder.position / ticksPerDeg + target)
             telemetryData.addData("error", error);
-            val ntolerable = error > 6
+            val ntolerable = error > 4
             if (ntolerable)
                 elapsedTime.reset()
             tolerable = elapsedTime.milliseconds() > 300;
@@ -62,8 +59,9 @@ class Turret : Subsystem() {
         update()
     }
     private fun CalculateGoal(): Double {
-
-        var mu = atan2( robot.GoalPose.y - ShootingWhileMoving.predictedPose.y, robot.GoalPose.x- ShootingWhileMoving.predictedPose.x)
+        var mu = atan2(ShootingWhileMoving.goalP.y - robot.CurrentPose.y, ShootingWhileMoving.goalP.x - robot.CurrentPose.x)
+        if(Launcher.preload)
+            mu = atan2(ShootingWhileMoving.goalP.y - Launcher.preloadPos.y, ShootingWhileMoving.goalP.x - Launcher.preloadPos.x)
         var deltaHeading = Math.toDegrees(mu) - Math.toDegrees(robot.pose.heading)
         return deltaHeading.coerceIn(-90.0,90.0);
     }

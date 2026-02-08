@@ -90,7 +90,7 @@ public class FollowPathCommand extends CommandBase {
     public BooleanSupplier supplier = new BooleanSupplier() {
         @Override
         public boolean getAsBoolean() {
-            return follower.getCurrentTValue()>0.24 ;
+            return follower.getCurrentTValue()>0.35 ;
         }
     };
     public Command halfWay(Command... parallel) {

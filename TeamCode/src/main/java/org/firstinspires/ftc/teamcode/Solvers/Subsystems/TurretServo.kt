@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems
 
-import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.follower.Follower
 import com.seattlesolvers.solverslib.command.SubsystemBase
 import com.seattlesolvers.solverslib.hardware.motors.Motor
@@ -13,7 +12,6 @@ import dev.nextftc.control.feedforward.BasicFeedforwardParameters
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.Globals.Robot
 
-@Config
 class TurretServo : SubsystemBase() {
     private val robot: Robot = Robot.getInstance()
     var turretEncoder: Motor.Encoder = robot.turretEncoder

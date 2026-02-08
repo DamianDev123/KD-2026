@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.Solvers.Subsystems;
 
 import static org.firstinspires.ftc.teamcode.Solvers.Subsystems.ShooterConstants.SCORE_HEIGHT;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -18,7 +17,6 @@ import org.firstinspires.ftc.teamcode.Solvers.Controllers.Lut;
 import java.util.Arrays;
 import java.util.List;
 
-@Config
 public class ShootingWhileMoving extends SubsystemBase {
 
     private final Robot robot = Robot.getInstance();
@@ -30,6 +28,9 @@ public class ShootingWhileMoving extends SubsystemBase {
     public static Vector robotGoalVector = new Vector();
     Vector robotVelocity = new Vector();
     Pose currentPose = new Pose();
+
+    public static Vector p = new Vector();
+    public static Pose goalP = new Pose();
     public double[] calcs = new double[] {0,0};
 //    private static final List<Double> launcherInput  = Arrays.asList(-0.01, 0.0, 231.0,   207.0,   226.0,   186.0,  222.0,   165.0); // input: velocity (m/s)
 //    private static final List<Double> launcherOutput = Arrays.asList(-0.01, 0.0, 1400.0,  1000.0,  1200.0,  900.0,  1100.0,    800.0); // output: ticks/s
@@ -82,41 +83,40 @@ public class ShootingWhileMoving extends SubsystemBase {
 
         robot.profiler.start("Moving Loop");
         currentPose = robot.CurrentPose;
+        Pose g = robot.GoalPose;
         if(Constants.shootingWhileMoving) {
 
             double angular = robot.follower.getAngularVelocity();
             robotVelocity = robot.follower.getVelocity();
             double x = dista(currentPose) * DistanceUnit.mPerInch;
-            double tof = org.firstinspires.ftc.teamcode.Globals.MathFunctions.getTimeOfFlight(x, Math.max(Launcher.targetFlywheelVelocityIn * DistanceUnit.mPerInch, 2), Launcher.targetHoodAngle) + 0.2;
+            double tof = org.firstinspires.ftc.teamcode.Globals.MathFunctions.getTimeOfFlight(x, Math.max(Launcher.targetFlywheelVelocityIn * DistanceUnit.mPerInch, 2), Launcher.targetHoodAngle) + 0.4;
             Vector vel = robotVelocity;
-            Vector accel = robot.follower.getAcceleration();
-            robot.telemetryData.addData("tof", tof);
-            predictedPose = new Pose(
-                    currentPose.getX()
-                            + vel.getXComponent() * tof,
-                           // + 0.5 * accel.getXComponent() * tof * tof,
-
-                    currentPose.getY()
-                            + vel.getYComponent() * tof,
-                            //+ 0.5 * accel.getYComponent() * tof * tof,
-                    currentPose.getHeading() + angular * tof
-
+            vel.setMagnitude(tof);
+            goalP = new Pose(
+                    g.getX() - vel.getXComponent()*tof,
+                    g.getY()-vel.getYComponent()*tof
             );
+
         }else {
-            predictedPose = currentPose;
+            goalP = g;
         }
-        double dist = dista(predictedPose);
+        double dist = dista(goalP);
 
 
         calcs = org.firstinspires.ftc.teamcode.Globals.MathFunctions.distanceToLauncherValues(dist * DistanceUnit.mPerInch);
         robot.profiler.end("Moving Loop");
     }
     public double dista(Pose p){
-        double dx = robot.GoalPose.getX() - p.getX();
-        double dy = robot.GoalPose.getY() - p.getY();
+        double dx = p.getX() - currentPose.getX();
+        double dy = p.getY() - currentPose.getY();
+        if(Launcher.preload){
+            dx = p.getX() - Launcher.preloadPos.getX();
+            dy = p.getY() - Launcher.preloadPos.getY();
+        }
 
         return Math.sqrt(dx * dx + dy * dy);
     }
+
 //    void update(){
 //        currentPose = robot.CurrentPose;
 //        robotVelocity = robot.follower.getVelocity();

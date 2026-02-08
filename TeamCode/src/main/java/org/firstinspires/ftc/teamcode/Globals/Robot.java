@@ -1,19 +1,13 @@
 package org.firstinspires.ftc.teamcode.Globals;
 //
 //import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.lynx.LynxDcMotorController;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
 import com.seattlesolvers.solverslib.hardware.motors.CRServoEx;
@@ -38,11 +32,9 @@ import org.firstinspires.ftc.teamcode.Solvers.CommandBase.Scheduler;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Launcher;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.LedDriver;
-import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.ShootingWhileMoving;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Storage;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Turret;
-import org.firstinspires.ftc.teamcode.pedroPathing.Drawing;
 import org.firstinspires.ftc.teamcode.pedroPathing.Poses;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
@@ -55,7 +47,6 @@ import dev.nullftc.profiler.Profiler;
 import dev.nullftc.profiler.entry.BasicProfilerEntryFactory;
 import dev.nullftc.profiler.exporter.CSVProfilerExporter;
 
-@Config
 public class Robot extends com.seattlesolvers.solverslib.command.Robot {
     public TelemetryData telemetryData;
     private static final Robot instance = new Robot();
@@ -95,8 +86,6 @@ public class Robot extends com.seattlesolvers.solverslib.command.Robot {
     public static Robot getInstance() {
         return instance;
     }
-    FtcDashboard dashboard = FtcDashboard.getInstance();
-    public Telemetry dashboardTelemetry = dashboard.getTelemetry();
 
     public void init(HardwareMap hwMap, Telemetry telemetry, Follower _follower){
         File logsFolder = new File(AppUtil.FIRST_FOLDER, "logs");
@@ -104,7 +93,7 @@ public class Robot extends com.seattlesolvers.solverslib.command.Robot {
         long timestamp = System.currentTimeMillis();
         file = new File(logsFolder, "profiler-" + timestamp + ".csv");
         List<LynxModule> allHubs = hwMap.getAll(LynxModule.class);
-        hubs = allHubs;
+hubs = allHubs;
         profiler = Profiler.builder()
                 .factory(new BasicProfilerEntryFactory())
                 .exporter(new CSVProfilerExporter(file))
@@ -224,14 +213,9 @@ public class Robot extends com.seattlesolvers.solverslib.command.Robot {
             telemetryData.update();
             follower.update();
             CurrentPose = follower.getPose();
-            Drawing.drawDebug(follower);
-            Drawing.drawRobot(GoalPose, "#4CAF50");
-            Drawing.drawRobot(ShootingWhileMoving.predictedPose, "#4CAF50");
             robotZone.setPosition(CurrentPose.getX(), CurrentPose.getY());
             robotZone.setRotation(CurrentPose.getHeading());
 
-        dashboardTelemetry.addData("Pase", CurrentPose);
-        dashboardTelemetry.update();
 
         profiler.end("Update Loop");
       //  Drawing.drawRobot(new Pose(follower.getPose().getY(),follower.getPose().getX()),"#3F51B5");

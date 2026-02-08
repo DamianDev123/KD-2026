@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems;
 
-import com.acmerobotics.dashboard.config.Config;
 
-@Config
 public class ShooterConstants {
     public static double SCORE_HEIGHT = 25;
     public static double SCORE_ANGLE = Math.toRadians(-30);

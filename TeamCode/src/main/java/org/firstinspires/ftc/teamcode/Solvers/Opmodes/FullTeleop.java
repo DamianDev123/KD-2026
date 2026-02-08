@@ -41,7 +41,8 @@ public class FullTeleop extends CommandOpMode {
     private ElapsedTime elapsedtime2 = new ElapsedTime();
     private Pose testing = new Pose(97.79939209726444,97.28875379939208,Math.toRadians(45));
     boolean inFull = false;
-    private Pose parkPose = new Pose(38, 33);
+    private Pose corner =  new Pose(8.620, 8.760,Math.toRadians(90));
+    private Pose parkPose =  new Pose(121.0, 121.0, Math.toRadians(0));
     boolean autoParking = false;
     boolean shooting = false;
     boolean backup = false;
@@ -120,6 +121,8 @@ public class FullTeleop extends CommandOpMode {
         }
         if (driver.getButton(GamepadKeys.Button.DPAD_DOWN))
             autoPark();
+        if (driver.getButton(GamepadKeys.Button.DPAD_UP))
+            resetP();
         if (driver.getButton(GamepadKeys.Button.Y)) {
             if (Objects.equals(ALLIANCE_COLOR, "BLUE")) {
                 follower.setPose(robot.poses.getStartFromFar().mirror());
@@ -143,6 +146,9 @@ public class FullTeleop extends CommandOpMode {
         if(elapsedtime2.milliseconds()>1000)
             autoParking = false;
         robot.profiler.end("Full Loop");
+    }
+    public void resetP(){
+        robot.follower.setPose(corner);
     }
     public void autoPark() {
         autoParking = true;

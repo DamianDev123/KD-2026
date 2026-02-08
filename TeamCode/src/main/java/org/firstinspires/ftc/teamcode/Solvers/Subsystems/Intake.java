@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -8,7 +7,6 @@ import org.firstinspires.ftc.teamcode.Globals.Robot;
 
 import java.util.function.BooleanSupplier;
 
-@Config
 public class Intake extends SubsystemBase {
     private final Robot robot = Robot.getInstance();
     ElapsedTime elapsedTime2 = new ElapsedTime();
@@ -24,6 +22,7 @@ public class Intake extends SubsystemBase {
     boolean overloaded = false;
     public boolean full = false;
     public boolean startClear = false;
+    public ElapsedTime elapsedTime4 = new ElapsedTime();
 
     public Intake() {
         elapsedTime.startTime();
@@ -36,7 +35,7 @@ public class Intake extends SubsystemBase {
                 robot.transferMotor.set(onoff ? 1 : 0);
                 robot.intakeMotor.set(onoff ? -1 : 0);
             }
-            robot.transferMotor.set((!(robot.storage.list[1] && robot.storage.list[2]) || Launcher.isFlapOpen) && onoff ? 1 : 0);
+            robot.transferMotor.set((elapsedTime4.milliseconds()>200 || Launcher.isFlapOpen) && onoff ? 1 : 0);
             robot.intakeMotor.set(onoff ? -1 : 0);
 
 
@@ -53,6 +52,8 @@ public class Intake extends SubsystemBase {
     @Override
     public void periodic() {
         update();
+        if((robot.storage.list[1] && robot.storage.list[2]))
+            elapsedTime4.reset();
     }
     void update(){
         if (Launcher.isFlapOpen) {

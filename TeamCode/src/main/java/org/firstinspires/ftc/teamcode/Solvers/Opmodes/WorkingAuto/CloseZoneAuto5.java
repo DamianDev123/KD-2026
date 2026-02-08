@@ -13,6 +13,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.teamcode.Globals.Robot;
 import org.firstinspires.ftc.teamcode.Solvers.Commands.ShootBalls;
 import org.firstinspires.ftc.teamcode.Solvers.Controllers.FollowPathCommand;
 import org.firstinspires.ftc.teamcode.Solvers.Controllers.WaitFull;
+import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Launcher;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Storage;
 
 import java.util.Objects;
@@ -51,7 +53,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
     private Pose row1        = new Pose(130.000, 36.500);
     private Pose row2        = new Pose(130.000, 59.500);
     private Pose row3        = new Pose(120.000, 83.500);
-    private Pose gate        = new Pose(136, 63);
+    private Pose gate        = new Pose(137, 61);
 
     /* ------------------- Control Points ------------------- */
 
@@ -63,10 +65,11 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
     private Pose cpRow1Out = new Pose(90.447, 31.963);
     private Pose cpRow1In  = new Pose(85.000, 31.000);
-    private Pose cpGateIn  =  new Pose(113.35076923076922, 57);
+    private Pose cpGateIn  =  new Pose(109, 69);
 
     private double intakeHeading = 0.0;
     private double gateHeading = 20.0;
+    private final ElapsedTime fullTimer = new ElapsedTime();
 
     /* ------------------- Alliance Mirroring ------------------- */
 
@@ -203,6 +206,8 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
         robot.turret.setRunningAuto(true);
         buildPaths();
+        fullTimer.startTime();
+        fullTimer.reset();
 
         SequentialCommandGroup autonomousSequence = new SequentialCommandGroup(
                 new InstantCommand(() -> robot.turret.shouldAim = true),
@@ -211,20 +216,22 @@ public class CloseZoneAuto5 extends CommandOpMode {
                 new InstantCommand(() -> Constants.shootingWhileMoving = true),
                 new FollowPathCommand(follower, toLaunch, true).alongWith(new ShootBalls()),
                 new InstantCommand(() -> robot.intake.intake(true)),
-
-                new InstantCommand(() -> Constants.shootingWhileMoving = false),
                 new FollowPathCommand(follower, toRow2).interruptOn(robot.intake.supplier),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new InstantCommand(()-> preload(launchZone)),
                 new FollowPathCommand(follower, toLaunchZoneRow2, true)
                         .halfWay(
                                 new InstantCommand(() -> robot.intake.intake(false)),
                                 new InstantCommand(() -> robot.launcher.setFlap(true))
-                        ).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
+                        )
+                        .alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
 
 
                 new FollowPathCommand(follower, toGate, true).withTimeout(3000),
                 new InstantCommand(() -> robot.intake.intake(true)),
                 new WaitFull(),
-                new FollowPathCommand(follower, toLaunchGate, true)
+                new InstantCommand(()-> preload(launchZone)),
+                new FollowPathCommand(follower, toLaunchGate)
                         .halfWay(
                                 new InstantCommand(() -> robot.intake.intake(false))
                         ).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
@@ -233,7 +240,9 @@ public class CloseZoneAuto5 extends CommandOpMode {
                 new FollowPathCommand(follower, toGate, true).withTimeout(3000),
                 new InstantCommand(() -> robot.intake.intake(true)),
                 new WaitFull(),
-                new FollowPathCommand(follower, toLaunchGate, true)
+
+                new InstantCommand(()-> preload(launchZone)),
+                new FollowPathCommand(follower, toLaunchGate)
                         .halfWay(
                                 new InstantCommand(() -> robot.intake.intake(false))
                         ).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
@@ -241,33 +250,45 @@ public class CloseZoneAuto5 extends CommandOpMode {
                 new FollowPathCommand(follower, toGate, true).withTimeout(3000),
                 new InstantCommand(() -> robot.intake.intake(true)),
                 new WaitFull(),
-                new FollowPathCommand(follower, toLaunchGate2, true)
+
+                new InstantCommand(()-> preload(launchZone2)),
+                new FollowPathCommand(follower, toLaunchGate2)
                         .halfWay(
                                 new InstantCommand(() -> robot.intake.intake(false))
                         ).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
 
                 new InstantCommand(()-> robot.intake.intake(true)),
                 new FollowPathCommand(follower,toRow3).interruptOn(robot.intake.supplier),
-                new WaitUntilCommand(robot.intake.supplier).withTimeout(1000),
+                new InstantCommand(()-> preload(launchZone2)),
                 new FollowPathCommand(follower,toLaunchZoneRow3, true).halfWay(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))),
                 new ShootBalls(),
 
-                new InstantCommand(()-> robot.turret.toggle =false)
+                new InstantCommand(()-> robot.turret.toggle =false),
+                new InstantCommand(()-> robot.turret.shouldAim =false),
+                new InstantCommand(() -> Constants.shootingWhileMoving = false)
         );
 
         schedule(autonomousSequence);
     }
-    public BooleanSupplier nearEnd = ()-> follower.getCurrentTValue()>0.7;
+    public BooleanSupplier nearEnd = ()-> follower.getCurrentTValue()>0.8;
     @Override
     public void run() {
         super.run();
         robot.updateLoop();
+    }
+    public void preload(Pose launchZone){
+        Launcher.preload = true;
+        Launcher.preloadPos = launchZone;
+        robot.launcher.doFlywheel = true;
+        Launcher.activeControl = true;
 
     }
+
 
     @Override
     public void end() {
         robot.turret.setRunningAuto(false);
         robot.turret.shouldAim = false;
+        Launcher.preload = false;
     }
 }
