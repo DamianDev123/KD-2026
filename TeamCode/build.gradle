@@ -75,14 +75,13 @@ dependencies {
     implementation "org.solverslib:core:#SNAPSHOT" // core
     implementation "org.solverslib:pedroPathing:0.3.3" // pedroPathing
     // implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:v3.0.2-ALPHA'
-
     // SolversLib: Latest Beta Version
 //    implementation "org.solverslib:core:SNAPSHOT-5a81a6b" // core
 //    implementation "org.solverslib:pedroPathing:SNAPSHOT-5a81a6b" // pedroPathingd
     //implementation "dev.frozenmilk.sinister:Sloth:0.2.4"
     // Pedro Pathing
     //implementation 'com.pedropathing:ftc:2.0.6'
-    implementation 'com.bylazar:fullpanels:1.0.9'
+    //implementation("com.bylazar.sloth:fullpanels:0.2.4+1.0.12")
     implementation 'com.skeletonarmyftc.marrow:core:1.0.0'
     implementation 'com.pedropathing:telemetry:1.0.0'
     implementation 'dev.nextftc:control:1.0.0'

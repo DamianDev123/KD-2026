@@ -6,10 +6,6 @@ import com.pedropathing.math.Vector;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Limelight;
-
-import static org.firstinspires.ftc.teamcode.Globals.Constants.*;
-
 import dev.nextftc.control.feedback.PIDCoefficients;
 
 @Configurable
@@ -24,38 +20,18 @@ public class Constants {
             val = multiplier;
         }
 
-        public int getMultiplier() {
-            return val;
-        }
     }
 
-    public static Pose redGoalPose = new Pose(141.5,141.5, 0.0);
-    public static Pose redPredictedPose = redGoalPose;
-    public static Pose blueGoalPose = redGoalPose.mirror();
-    public static Pose bluePredictedPose = redPredictedPose.mirror();
+
+    public static Pose redGoalPose = new Pose(130.346456697,127.6299213);
+    public static Pose blueGoalPose = new Pose(130.346456697,127.6299213).mirror();
     public static String ALLIANCE_COLOR = "RED";
     public static ZoneType zoneType = ZoneType.Farzone;
-    public static double LAUNCHER_DEFAULT_ON_SPEED = 1; // Power
-    public static double MIN_HOOD_ANGLE = 18.188; // Degrees from horizontal //
-    public static double MIN_HOOD_SERVO_POS = 0; // MUST MATCH WITH VALUE ABOVE
-    public static double MAX_HOOD_ANGLE = 44.188; // Degrees from horizontal //
-    public static double MAX_HOOD_SERVO_POS = 1; // Position // MUST MATCH WITH VALUE ABOVE
     public static double LAUNCHER_MAX_VELOCITY = 1900; // Ticks/second
-    public static double LAUNCHER_MIN_VELOCITY = 100; // Ticks/second
-
-    public static final double GRAVITY = 9.81; // meters/second
-    public static double LAUNCHER_HEIGHT =10.5*DistanceUnit.mPerInch; // meters // 13 inches
-    public static  double TARGET_HEIGHT =1; // meters
-    public static double LAUNCHER_MAX_BALL_VELOCITY = 12; // Meters/second // TODO: tune this to potentially be lower
-    public static double GOAL_LIP = 1; // Meters
-    public static double BACKBOARD_Y_OFFSET = 0.2; // Meters
-    public static double LIP_BUFFER = 0.1; // Meters
 
     public static boolean autoInitialized = false;
     public static boolean shootingWhileMoving = false;
-    public static double MAX_DRIVE_VELOCITY = 7.75 * 12; // Inches/second
     public static Double NearDistance = 5.0;
-    public static PIDCoefficients TURRET_PIDF_COEFFICIENTS= new PIDCoefficients(0.0002,0,0);
     public enum OpModeType {
         AUTO,
         TELEOP

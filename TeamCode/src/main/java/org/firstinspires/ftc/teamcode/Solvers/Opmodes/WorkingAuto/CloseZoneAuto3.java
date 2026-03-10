@@ -32,7 +32,6 @@ import java.util.Objects;
 
 @Autonomous
 public class CloseZoneAuto3 extends CommandOpMode {
-    Telemetry telemetry = new TelemetryImplUpstreamSubmission(this);
     Follower follower;
     private final Robot robot = Robot.getInstance();
     private Timer pathTimer, opmodeTimer;
@@ -221,7 +220,7 @@ public class CloseZoneAuto3 extends CommandOpMode {
     public void initialize() {
         follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
         Constants.OP_MODE_TYPE = OpModeType.AUTO;
-        robot.init(hardwareMap,telemetry,follower);
+        robot.init(hardwareMap,follower);
         autoInitialized = true;
 
         if(Objects.equals(ALLIANCE_COLOR, "BLUE")){
@@ -250,7 +249,7 @@ public class CloseZoneAuto3 extends CommandOpMode {
                 new InstantCommand(()-> autoInitialized = true),
                 new InstantCommand(()->robot.turret.shouldAim = true),
                 new InstantCommand(()-> robot.launcher.setFlap(true)),
-                new FollowPathCommand(follower,toLaunch, true).alongWith(new ShootBalls(3000)),
+                new FollowPathCommand(follower,toLaunch, true).alongWith(new ShootBalls()),
 
 
 

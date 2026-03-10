@@ -206,7 +206,7 @@ public class CloseZoneAuto2 extends CommandOpMode {
     public void initialize() {
         follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
         Constants.OP_MODE_TYPE = OpModeType.AUTO;
-        robot.init(hardwareMap,telemetry,follower);
+        robot.init(hardwareMap,follower);
         autoInitialized = true;
 
         if(Objects.equals(ALLIANCE_COLOR, "BLUE")){

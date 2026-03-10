@@ -14,7 +14,7 @@ class Poses {
 
     val robot: Robot = Robot.getInstance();
     var startFromClose = Pose(121.0, 121.0, Math.toRadians(0.0));
-    var startFromFar = Pose(96.0,8.0,PI / 2);
+    var startFromFar = Pose(96.0,8.0,Math.toRadians(90.0));
     var start = Pose(89.0, 8.0, PI / 2)
     var launchZone = Pose(96.0, 8.0, PI / 2)
     var row1 = Pose(100.0, 35.5, 0.0)// Row closest to the front of the field

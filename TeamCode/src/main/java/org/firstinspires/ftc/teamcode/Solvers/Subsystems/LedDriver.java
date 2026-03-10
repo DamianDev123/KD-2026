@@ -22,16 +22,6 @@ public class LedDriver extends SubsystemBase {
     }
 
     void update(){
-        if(Storage.full){
-            double error = Math.min(robot.launcher.errorAbs,100);
-            double mapval = mapValue(error);
-            led.setPosition(mapval);
-        }else {
-            led.setPosition(0.7);
-        }
+        led.setPosition(Storage.full? 0.5:0.7);
     }
-    double mapValue(double x) {
-        return 0.5 - 0.002 * x;
-    }
-
 }

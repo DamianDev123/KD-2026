@@ -1,51 +1,48 @@
 package org.firstinspires.ftc.teamcode.Solvers.Opmodes;
 
-import com.pedropathing.follower.Follower;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.seattlesolvers.solverslib.hardware.motors.MotorEx;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 
-@TeleOp
+@TeleOp(name = "testOp4")
+@Configurable
 public class testOp4 extends OpMode {
+
     public static double power1 = 0.0;
     public static double power2 = 0.0;
-
     public static double power3 = 0.0;
-
     public static double power4 = 0.0;
     public static double power5 = 0.0;
-
     public static double power6 = 0.0;
-    public MotorEx intakeMotor;
-    public MotorEx transferMotor;
-    public MotorEx shooterMotor;
-    public MotorEx shooterAMotor;
 
-    public ServoEx hood;
-    public ServoEx flap;
+    private ServoEx s1, s2, s3, s4, s5, s6;
+
     @Override
     public void init() {
-        intakeMotor = new MotorEx(hardwareMap, "Intake")
-                .setCachingTolerance(0.01);
-        transferMotor = new MotorEx(hardwareMap, "Transfer")
-                .setCachingTolerance(0.01);
-        shooterMotor = new MotorEx(hardwareMap, "Shooter")
-                .setCachingTolerance(0.01);
-        shooterAMotor = new MotorEx(hardwareMap, "shooterAssist")
-                .setCachingTolerance(0.01);
-        hood = new ServoEx(hardwareMap, "Hood").setCachingTolerance(0.001);
-        flap = new ServoEx(hardwareMap, "Flap").setCachingTolerance(0.001);
+        s1 = new ServoEx(hardwareMap, "s1").setCachingTolerance(0.001);
+        s2 = new ServoEx(hardwareMap, "s2").setCachingTolerance(0.001);
+        s3 = new ServoEx(hardwareMap, "s3").setCachingTolerance(0.001);
+        s4 = new ServoEx(hardwareMap, "s4").setCachingTolerance(0.001);
+        s5 = new ServoEx(hardwareMap, "s5").setCachingTolerance(0.001);
+        s6 = new ServoEx(hardwareMap, "s6").setCachingTolerance(0.001);
     }
 
     @Override
     public void loop() {
-        transferMotor.set(-power2);
-        intakeMotor.set(power2);
-        shooterMotor.set(power3);
-        shooterAMotor.set(power4);
-        hood.set(power5);
-        flap.set(power6);
+        s1.set(power1);
+        s2.set(power2);
+        s3.set(power3);
+        s4.set(power4);
+        s5.set(power5);
+        s6.set(power6);
+
+        telemetry.addData("s1", power1);
+        telemetry.addData("s2", power2);
+        telemetry.addData("s3", power3);
+        telemetry.addData("s4", power4);
+        telemetry.addData("s5", power5);
+        telemetry.addData("s6", power6);
+        telemetry.update();
     }
 }

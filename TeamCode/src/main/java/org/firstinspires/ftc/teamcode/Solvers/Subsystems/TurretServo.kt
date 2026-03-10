@@ -4,12 +4,10 @@ import com.pedropathing.follower.Follower
 import com.seattlesolvers.solverslib.command.SubsystemBase
 import com.seattlesolvers.solverslib.hardware.motors.Motor
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx
-import com.seattlesolvers.solverslib.util.TelemetryData
 import dev.nextftc.control.KineticState
 import dev.nextftc.control.builder.controlSystem
 import dev.nextftc.control.feedback.PIDCoefficients
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.teamcode.Globals.Robot
 
 class TurretServo : SubsystemBase() {
@@ -30,6 +28,8 @@ class TurretServo : SubsystemBase() {
         @JvmField var targetPos = 0.0;
         @JvmField var tuningVel = false
     }
+
+
     val velControl = controlSystem {
         velPid(velPIDCoefficients)
         basicFF(velFFCoefficients)
@@ -54,5 +54,6 @@ class TurretServo : SubsystemBase() {
     fun setPower(power: Double){
         turretServo1.set((power/2)+0.5)
         turretServo2.set((power/2)+0.5)
+
     }
 }

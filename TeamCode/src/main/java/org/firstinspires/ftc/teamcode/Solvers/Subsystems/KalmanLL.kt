@@ -7,16 +7,19 @@ import com.qualcomm.hardware.limelightvision.LLResult
 import com.qualcomm.hardware.limelightvision.Limelight3A
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.seattlesolvers.solverslib.command.SubsystemBase
-import org.firstinspires.ftc.teamcode.Globals.Constants
 import org.firstinspires.ftc.teamcode.Globals.Robot
 import org.firstinspires.ftc.teamcode.Solvers.Opmodes.Drawing
-import org.firstinspires.ftc.teamcode.helpers.controllers.FusionLocalizer
+import org.firstinspires.ftc.teamcode.helpers.controllers.Kalman
 import org.firstinspires.ftc.teamcode.next.filters.kalmanFilter
-import kotlin.math.PI
 
 @Configurable
-class Limelight : SubsystemBase() {
+class KalmanLL : SubsystemBase() {
 
+    private val kx = Kalman(0.0, 0.5, q = 0.1)
+    private val ky = Kalman(0.0, 0.5, q = 0.1)
+
+    private val kal1 = kalmanFilter(0.0, 0.0)
+    private val kal2 = kalmanFilter(0.0, 0.0)
 
     private var lastX = 0.0
     private var lastY = 0.0
@@ -24,7 +27,17 @@ class Limelight : SubsystemBase() {
     val headingFilter: Filter = Filter();
 
     lateinit var ll: Limelight3A
-    @JvmField var truePose: Pose = Pose()
+    //thing:
+    @JvmField var truePose: Pose = Pose(
+        0.0,
+        0.0
+    )
+
+    //something
+    @JvmField var visionPose: Pose = Pose(
+        0.0,
+        0.0
+    )
     @JvmField var limelightOn = true
 
     var botposeHeading = 0.0;
@@ -64,7 +77,6 @@ class Limelight : SubsystemBase() {
     }
     fun getTx(): Double? {
         val r = grabResultData() ?: return 0.0
-
         return r.fiducialResults[0].targetXDegrees
     }
 
@@ -93,7 +105,25 @@ class Limelight : SubsystemBase() {
     fun kalman() {
         follower.update()
 
-        //kalman implementation:
+        kal1.x = visionPose.x
+        kal1.predict(robot.follower.velocity.xComponent)
+        kal1.update(follower.pose.x, visionPose.x - follower.pose.x)
+
+        kal2.x = visionPose.y
+        kal2.predict(robot.follower.velocity.xComponent)
+        kal2.update(follower.pose.y, visionPose.y - follower.pose.y)
+
+        truePose = Pose(
+            kal1.x,
+            kal2.x
+        )
+
+        robot.telemetry.addData("llPose:", visionPose)
+        robot.telemetry.addData("odoPose:", follower.pose)
+        robot.telemetry.addData("truePose:", truePose)
+
+        //old filter code:
+        /*
         truePose = poseFilter.updateFilteredVelocities(follower.pose)
         // if(Constants.ALLIANCE_COLOR == "RED") return
         headingFilter.updateFilteredVelocities(Math.toDegrees(truePose.heading))
@@ -106,6 +136,7 @@ class Limelight : SubsystemBase() {
         //robot.follower.heading = Math.toRadians(filteredHeading);
         robot.follower.setY(fP.y);
         truePose = fP;
+        */
 
         Drawing.drawRobot(follower.pose)
 

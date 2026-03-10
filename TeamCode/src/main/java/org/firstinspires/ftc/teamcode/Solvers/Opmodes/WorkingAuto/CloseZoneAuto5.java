@@ -13,19 +13,21 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
+import com.seattlesolvers.solverslib.command.WaitCommand;
 import com.seattlesolvers.solverslib.command.WaitUntilCommand;
+import com.seattlesolvers.solverslib.pedroCommand.TurnToCommand;
 
 import org.firstinspires.ftc.teamcode.Globals.Constants;
 import org.firstinspires.ftc.teamcode.Globals.Robot;
 import org.firstinspires.ftc.teamcode.Solvers.Commands.ShootBalls;
 import org.firstinspires.ftc.teamcode.Solvers.Controllers.FollowPathCommand;
 import org.firstinspires.ftc.teamcode.Solvers.Controllers.WaitFull;
-import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Launcher;
-import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Storage;
+import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Intake;
+import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Limelight;
+import org.opencv.core.Mat;
 
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
@@ -39,37 +41,51 @@ public class CloseZoneAuto5 extends CommandOpMode {
     private ShootBalls shootBalls;
 
     public PathChain toLaunch,
-            toRow1,toLaunchZoneRow1,
-            toRow2,toLaunchZoneRow2,
-            toRow3,toLaunchZoneRow3,
-            toGate,toLaunchGate,
-            toLaunchGate2;
+            toRow1, toRow1Intake, toLaunchZoneRow1,
+            toRow2, toRow2Intake, toLaunchZoneRow2,
+            toRow3, toRow3Intake, toLaunchZoneRow3,
+            toGate, toGateIn, tolaunchGate, gateIn
+            ;
 
     /* ------------------- Base Poses ------------------- */
 
-    private Pose startPose   = new Pose(121.0, 121.0, Math.toRadians(0));
-    private Pose launchZone  = new Pose(83.5 , 75.0);
-    private Pose launchZone2  = new Pose(93 , 78);
-    private Pose row1        = new Pose(130.000, 36.500);
-    private Pose row2        = new Pose(130.000, 59.500);
-    private Pose row3        = new Pose(120.000, 83.500);
-    private Pose gate        = new Pose(137, 61);
+    private Pose startPose   = new Pose(118, 130.5, Math.toRadians(38));
+    private Pose launchZone  = new Pose(87, 89);
+    private Pose row1        = new Pose(139.000, 36.500);
+    private Pose row1End     = new Pose(120.500, 35.500);
+    private Pose row2        = new Pose(134.000, 56);
+    private Pose row2End     = new Pose(128.500, 59.500);
+    private Pose row3        = new Pose(127.000, 87);
+    private Pose row3End     = new Pose(128.500, 83.500);
+    private Pose gate        = new Pose(126 , 70);
+    private Pose gatein        = new Pose(129.5 , 56);
+
 
     /* ------------------- Control Points ------------------- */
 
     private Pose cpRow3Out = new Pose(93.267, 83.700);
     private Pose cpGateMid = new Pose(112.473, 67.707);
 
-    private Pose cpRow2Out = new Pose(101.43, 57.287);
-    private Pose cpRow2In  = new Pose(101.43, 57.287);
+    private Pose cpRow2Out = new Pose(86, 54);
+    private Pose cpRow2In  = new Pose(110.303, 58.537);
 
-    private Pose cpRow1Out = new Pose(90.447, 31.963);
+    private Pose cpRow1Out = new Pose(86.26928895612707, 25);
     private Pose cpRow1In  = new Pose(85.000, 31.000);
-    private Pose cpGateIn  =  new Pose(109, 69);
 
+    private Pose becky = new Pose(124, 14);
+    private Pose backy = new Pose(132.179, 10.419);
+    private Pose cp = new Pose(111, 58.678517397882004);
+    private Pose posy = new Pose(124, 57);
+    private Pose pos = new Pose(80, 70);
+    private Pose ss = new Pose(96.496, 52.888);
+    private Pose helpMe = new Pose(93, 83.365);
+    private Pose omg = new Pose(100.370, 50.507);
     private double intakeHeading = 0.0;
-    private double gateHeading = 20.0;
-    private final ElapsedTime fullTimer = new ElapsedTime();
+    private double beckyHead = -60.0;
+    private double shissh = 0.0;
+    private double mijo = 20.0;
+    private double Rece = 30.0;
+    
 
     /* ------------------- Alliance Mirroring ------------------- */
 
@@ -77,9 +93,21 @@ public class CloseZoneAuto5 extends CommandOpMode {
         startPose  = startPose.mirror();
         launchZone = launchZone.mirror();
         row1       = row1.mirror();
+        row1End    = row1End.mirror();
         row2       = row2.mirror();
+        row2End    = row2End.mirror();
         row3       = row3.mirror();
+        row3End    = row3End.mirror();
         gate       = gate.mirror();
+        gatein = gatein.mirror();
+        becky = becky.mirror();
+        backy = backy.mirror();
+        cp = cp.mirror();
+        posy = posy.mirror();
+        ss = ss.mirror();
+        helpMe = helpMe.mirror();
+        omg = omg.mirror();
+        pos = pos.mirror();
 
         cpRow3Out = cpRow3Out.mirror();
         cpGateMid = cpGateMid.mirror();
@@ -87,14 +115,17 @@ public class CloseZoneAuto5 extends CommandOpMode {
         cpRow2In  = cpRow2In.mirror();
         cpRow1Out = cpRow1Out.mirror();
         cpRow1In  = cpRow1In.mirror();
-        cpGateIn = cpGateIn.mirror();
 
-        intakeHeading = mirrorAngle(intakeHeading);
-        gateHeading = mirrorAngle(gateHeading);
+        intakeHeading = 180;
+        beckyHead = mirrorAngle(beckyHead);
+        shissh = mirrorAngle(shissh);
+        mijo = mirrorAngle(mijo);
+        Rece = mirrorAngle(Rece);
+
         robot.GoalPose = blueGoalPose;
     }
-    public double mirrorAngle(double angle){
-        return -angle+180;
+    double mirrorAngle(double angle){
+        return 180-angle;
     }
 
     /* ------------------- Path Building ------------------- */
@@ -109,14 +140,18 @@ public class CloseZoneAuto5 extends CommandOpMode {
         ).build();
 
         toRow3 = follower.pathBuilder().addPath(
-                new BezierLine(launchZone2, row3)
+                new BezierCurve(launchZone, cpRow3Out, row3)
         ).setLinearHeadingInterpolation(
                 Math.toRadians(intakeHeading),
                 Math.toRadians(intakeHeading)
         ).build();
 
+        toRow3Intake = follower.pathBuilder().addPath(
+                new BezierLine(row3, row3End)
+        ).setTangentHeadingInterpolation().build();
+
         toLaunchZoneRow3 = follower.pathBuilder().addPath(
-                new BezierLine(row3, launchZone2)
+                new BezierCurve(row3, cpGateMid, launchZone)
         ).setLinearHeadingInterpolation(
                 Math.toRadians(intakeHeading),
                 Math.toRadians(intakeHeading)
@@ -129,57 +164,74 @@ public class CloseZoneAuto5 extends CommandOpMode {
                 Math.toRadians(intakeHeading)
         ).build();
 
+        toRow2Intake = follower.pathBuilder().addPath(
+                new BezierLine(row2, row2End)
+        ).setTangentHeadingInterpolation().build();
 
         toLaunchZoneRow2 = follower.pathBuilder().addPath(
-                new BezierCurve(row2, cpRow2In, launchZone)
+                new BezierCurve(row2End, cpRow2In, launchZone)
         ).setLinearHeadingInterpolation(
                 Math.toRadians(intakeHeading),
-                Math.toRadians(gateHeading)
+                Math.toRadians(intakeHeading)
         ).build();
 
         toRow1 = follower.pathBuilder().addPath(
-                new BezierCurve(launchZone2,cpRow1In, row1)
-        ).setLinearHeadingInterpolation(
-                Math.toRadians(-64),
-                Math.toRadians(-20)
+                new BezierCurve(launchZone, cpRow1Out, row1)
+        ).setTangentHeadingInterpolation(
         ).build();
 
+        toRow1Intake = follower.pathBuilder().addPath(
+                new BezierLine(row1, row1End)
+        ).setTangentHeadingInterpolation().build();
+
         toLaunchZoneRow1 = follower.pathBuilder().addPath(
-                new BezierLine(row1, launchZone)
-        ).setTangentHeadingInterpolation()
-                .setReversed()
-                .build();
+                new BezierCurve(row1End, cpRow1In, launchZone)
+        ).setLinearHeadingInterpolation(
+                Math.toRadians(intakeHeading),
+                Math.toRadians(intakeHeading)
+        ).build();
 
         toGate = follower.pathBuilder().addPath(
                 new BezierCurve(
                         launchZone,
-                        cpGateIn,
+                        pos,
                         gate
                 )
         ).setLinearHeadingInterpolation(
                 Math.toRadians(intakeHeading),
-                Math.toRadians(gateHeading)
+                Math.toRadians(intakeHeading)
+        ).build();
+        gateIn = follower.pathBuilder().addPath(
+                new BezierCurve(
+                        gate,
+                        cp,
+                        gatein
+                )
+        ).setLinearHeadingInterpolation(
+                Math.toRadians(intakeHeading),
+                Math.toRadians(Rece)
+        ).build();
+        toGateIn = follower.pathBuilder().addPath(
+                new BezierCurve(
+                        gate,
+                        cp,
+                        posy
+                )
+        ).setLinearHeadingInterpolation(
+                Math.toRadians(Rece),
+                Math.toRadians(Rece)
         ).build();
 
-        toLaunchGate = follower.pathBuilder().addPath(
-                new BezierLine(
-                        gate,
+        tolaunchGate = follower.pathBuilder().addPath(
+                new BezierCurve(
+                       gate,
+                        ss,
                         launchZone
                 )
         ).setLinearHeadingInterpolation(
-                Math.toRadians(gateHeading),
-                Math.toRadians(gateHeading)
-        ).build();
-        toLaunchGate2 = follower.pathBuilder().addPath(
-                new BezierLine(
-                      gate,
-                        launchZone2
-                )
-        ).setLinearHeadingInterpolation(
-                Math.toRadians(gateHeading),
+                Math.toRadians(intakeHeading),
                 Math.toRadians(intakeHeading)
         ).build();
-
     }
 
     /* ------------------- Init ------------------- */
@@ -190,7 +242,9 @@ public class CloseZoneAuto5 extends CommandOpMode {
         follower = org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower(hardwareMap);
         Constants.OP_MODE_TYPE = OpModeType.AUTO;
 
-        robot.init(hardwareMap, telemetry, follower);
+        Limelight.autoRunning = true;
+        robot.init(hardwareMap, follower);
+        robot.telemetry = telemetry;
         autoInitialized = true;
 
         if (Objects.equals(ALLIANCE_COLOR, "BLUE")) {
@@ -205,90 +259,114 @@ public class CloseZoneAuto5 extends CommandOpMode {
         shootBalls.initialize();
 
         robot.turret.setRunningAuto(true);
+        robot.turret.forcedPos = launchZone;
+        robot.turret.overrideTurret(launchZone);
+
         buildPaths();
-        fullTimer.startTime();
-        fullTimer.reset();
 
         SequentialCommandGroup autonomousSequence = new SequentialCommandGroup(
                 new InstantCommand(() -> robot.turret.shouldAim = true),
+                new InstantCommand(()->robot.turret.setOverride(true)),
                 new InstantCommand(() -> robot.launcher.setFlap(true)),
-
-                new InstantCommand(() -> Constants.shootingWhileMoving = true),
-                new FollowPathCommand(follower, toLaunch, true).alongWith(new ShootBalls()),
-                new InstantCommand(() -> robot.intake.intake(true)),
-                new FollowPathCommand(follower, toRow2).interruptOn(robot.intake.supplier),
-                new InstantCommand(() -> robot.intake.intake(true)),
-                new InstantCommand(()-> preload(launchZone)),
-                new FollowPathCommand(follower, toLaunchZoneRow2, true)
-                        .halfWay(
-                                new InstantCommand(() -> robot.intake.intake(false)),
-                                new InstantCommand(() -> robot.launcher.setFlap(true))
-                        )
-                        .alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
-
-
-                new FollowPathCommand(follower, toGate, true).withTimeout(3000),
-                new InstantCommand(() -> robot.intake.intake(true)),
-                new WaitFull(),
-                new InstantCommand(()-> preload(launchZone)),
-                new FollowPathCommand(follower, toLaunchGate)
-                        .halfWay(
-                                new InstantCommand(() -> robot.intake.intake(false))
-                        ).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
-
-
-                new FollowPathCommand(follower, toGate, true).withTimeout(3000),
-                new InstantCommand(() -> robot.intake.intake(true)),
-                new WaitFull(),
-
-                new InstantCommand(()-> preload(launchZone)),
-                new FollowPathCommand(follower, toLaunchGate)
-                        .halfWay(
-                                new InstantCommand(() -> robot.intake.intake(false))
-                        ).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
-
-                new FollowPathCommand(follower, toGate, true).withTimeout(3000),
-                new InstantCommand(() -> robot.intake.intake(true)),
-                new WaitFull(),
-
-                new InstantCommand(()-> preload(launchZone2)),
-                new FollowPathCommand(follower, toLaunchGate2)
-                        .halfWay(
-                                new InstantCommand(() -> robot.intake.intake(false))
-                        ).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
-
-                new InstantCommand(()-> robot.intake.intake(true)),
-                new FollowPathCommand(follower,toRow3).interruptOn(robot.intake.supplier),
-                new InstantCommand(()-> preload(launchZone2)),
-                new FollowPathCommand(follower,toLaunchZoneRow3, true).halfWay(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))),
+                new FollowPathCommand(follower, toLaunch, true),
+                new WaitCommand(200),
                 new ShootBalls(),
 
-                new InstantCommand(()-> robot.turret.toggle =false),
-                new InstantCommand(()-> robot.turret.shouldAim =false),
-                new InstantCommand(() -> Constants.shootingWhileMoving = false)
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new InstantCommand(() -> robot.intake.intake(true)),
+
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, toRow2).interruptOn(robot.intake.supplier),
+                new InstantCommand(Intake::intakeDown),
+
+                new WaitCommand(200),
+                new FollowPathCommand(follower, toLaunchZoneRow2),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new WaitCommand(200),
+                new ShootBalls(),
+
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, toGate).withTimeout(3000),
+                new FollowPathCommand(follower, gateIn).withTimeout(400),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new WaitFull(),
+                new WaitFull(),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, tolaunchGate),
+                new ShootBalls(),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+
+
+
+
+                new FollowPathCommand(follower, toGate).withTimeout(3000),
+                new FollowPathCommand(follower, gateIn).withTimeout(400),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new WaitFull(),
+                new WaitFull(),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, tolaunchGate),
+                new ShootBalls(),
+
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+
+                new FollowPathCommand(follower, toGate).withTimeout(3000),
+                new FollowPathCommand(follower, gateIn).withTimeout(400),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new WaitFull(),
+                new WaitFull(),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, tolaunchGate),
+                new ShootBalls(),
+
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+
+                new FollowPathCommand(follower,toRow3).halfWay(
+                        new InstantCommand(() -> robot.intake.intake(true))).interruptOn(robot.intake.supplier),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+
+                new WaitFull(),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower,toLaunchZoneRow3, true).halfWay(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))),
+                new WaitCommand(200),
+                new ShootBalls(),
+
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new FollowPathCommand(follower,toRow1).interruptOn(robot.intake.supplier),
+                new WaitFull(),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower,toLaunchZoneRow1, true).halfWay(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))),
+
+                new ShootBalls(),
+                new TurnToCommand(follower,Math.toRadians(beckyHead)).withTimeout(100)
         );
 
         schedule(autonomousSequence);
     }
     public BooleanSupplier nearEnd = ()-> follower.getCurrentTValue()>0.8;
+
     @Override
     public void run() {
         super.run();
         robot.updateLoop();
-    }
-    public void preload(Pose launchZone){
-        Launcher.preload = true;
-        Launcher.preloadPos = launchZone;
-        robot.launcher.doFlywheel = true;
-        Launcher.activeControl = true;
+        follower.setMaxPower(1);
+        robot.intake.runningAuto = true;
+        telemetry.addData("Turr", robot.turret.forcedPos);
 
+        telemetry.addData("pose", robot.follower.getPose());
+        telemetry.update();
+        // Intake.intakeDown();
     }
-
 
     @Override
     public void end() {
-        robot.turret.setRunningAuto(false);
+        robot.turret.setRunningAuto(true);
         robot.turret.shouldAim = false;
-        Launcher.preload = false;
+
+        robot.intake.runningAuto = false;
     }
 }

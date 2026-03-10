@@ -17,7 +17,6 @@ import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
-import com.seattlesolvers.solverslib.command.WaitUntilCommand;
 import com.seattlesolvers.solverslib.pedroCommand.TurnToCommand;
 
 import org.firstinspires.ftc.teamcode.Globals.Constants;
@@ -25,16 +24,14 @@ import org.firstinspires.ftc.teamcode.Globals.Robot;
 import org.firstinspires.ftc.teamcode.Solvers.Commands.ShootBalls;
 import org.firstinspires.ftc.teamcode.Solvers.Controllers.FollowPathCommand;
 import org.firstinspires.ftc.teamcode.Solvers.Controllers.WaitFull;
-import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Filter;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Limelight;
-import org.firstinspires.ftc.teamcode.TelemetryImplUpstreamSubmission;
 
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 @Autonomous
-public class CloseZoneAuto4 extends CommandOpMode {
+public class CloseZoneAuto7 extends CommandOpMode {
     Follower follower;
     private final Robot robot = Robot.getInstance();
 
@@ -45,21 +42,21 @@ public class CloseZoneAuto4 extends CommandOpMode {
             toRow1, toRow1Intake, toLaunchZoneRow1,
             toRow2, toRow2Intake, toLaunchZoneRow2,
             toRow3, toRow3Intake, toLaunchZoneRow3,
-            toGate, toGateIn, tolaunchGate, GoIn,
-            GoBack, goBacky,goBecky
+            toGate, toGateIn, tolaunchGate, gateIn
             ;
 
     /* ------------------- Base Poses ------------------- */
 
-    private Pose startPose   = new Pose(121.0, 121.0, Math.toRadians(0));
-    private Pose launchZone  = new Pose(90, 98.000);
+    private Pose startPose   = new Pose(118, 130.5, Math.toRadians(38));
+    private Pose launchZone  = new Pose(87, 82);
     private Pose row1        = new Pose(139.000, 36.500);
     private Pose row1End     = new Pose(120.500, 35.500);
-    private Pose row2        = new Pose(139.000, 55.500);
+    private Pose row2        = new Pose(134.000, 58);
     private Pose row2End     = new Pose(128.500, 59.500);
-    private Pose row3        = new Pose(127.000, 83.500);
+    private Pose row3        = new Pose(127.000, 81);
     private Pose row3End     = new Pose(128.500, 83.500);
-    private Pose gate        = new Pose(130, 69);
+    private Pose gate        = new Pose(132 , 72);
+    private Pose gatein        = new Pose(130 , 60);
 
 
     /* ------------------- Control Points ------------------- */
@@ -76,7 +73,7 @@ public class CloseZoneAuto4 extends CommandOpMode {
     private Pose becky = new Pose(124, 14);
     private Pose backy = new Pose(132.179, 10.419);
     private Pose cp = new Pose(125.40998487140696, 50.959909228441724);
-    private Pose posy = new Pose(128.5, 57);
+    private Pose posy = new Pose(128.5, 61);
     private Pose ss = new Pose(96.496, 52.888);
     private Pose helpMe = new Pose(93, 83.365);
     private Pose omg = new Pose(100.370, 50.507);
@@ -98,6 +95,7 @@ public class CloseZoneAuto4 extends CommandOpMode {
         row3       = row3.mirror();
         row3End    = row3End.mirror();
         gate       = gate.mirror();
+        gatein = gatein.mirror();
         becky = becky.mirror();
         backy = backy.mirror();
         cp = cp.mirror();
@@ -188,14 +186,22 @@ public class CloseZoneAuto4 extends CommandOpMode {
         ).build();
 
         toGate = follower.pathBuilder().addPath(
-                new BezierCurve(
+                new BezierLine(
                         launchZone,
-                        omg,
-                        gate
+                        posy
+                )
+        ).setLinearHeadingInterpolation(
+                Math.toRadians(25),
+                Math.toRadians(25)
+        ).build();
+        gateIn = follower.pathBuilder().addPath(
+                new BezierLine(
+                        gate,
+                        gatein
                 )
         ).setLinearHeadingInterpolation(
                 Math.toRadians(intakeHeading),
-                Math.toRadians(intakeHeading)
+                Math.toRadians(30)
         ).build();
         toGateIn = follower.pathBuilder().addPath(
                 new BezierCurve(
@@ -212,46 +218,12 @@ public class CloseZoneAuto4 extends CommandOpMode {
                 new BezierCurve(
                        gate,
                         ss,
-                        helpMe
+                        launchZone
                 )
         ).setLinearHeadingInterpolation(
                 Math.toRadians(intakeHeading),
                 Math.toRadians(intakeHeading)
         ).build();
-        GoIn =  follower.pathBuilder().addPath(
-                new BezierLine(
-                        launchZone,
-                        backy
-                )
-        ).setLinearHeadingInterpolation(
-                Math.toRadians(beckyHead),
-                Math.toRadians(beckyHead)
-
-        ).build();
-        goBacky =  follower.pathBuilder().addPath(
-                new BezierLine(
-                        backy,
-                        becky
-                )
-        ).setLinearHeadingInterpolation(
-                Math.toRadians(beckyHead),
-                Math.toRadians(beckyHead)).build();
-        goBecky =  follower.pathBuilder().addPath(
-                new BezierLine(
-                       becky,
-                        backy
-                )
-        ).setLinearHeadingInterpolation(
-                Math.toRadians(beckyHead),
-                Math.toRadians(beckyHead)).build();
-        GoBack=  follower.pathBuilder().addPath(
-                        new BezierLine(
-                                backy,
-                                launchZone
-                        )
-                ).setTangentHeadingInterpolation()
-                .setReversed()
-                .build();
     }
 
     /* ------------------- Init ------------------- */
@@ -279,42 +251,69 @@ public class CloseZoneAuto4 extends CommandOpMode {
         shootBalls.initialize();
 
         robot.turret.setRunningAuto(true);
+        robot.turret.forcedPos = launchZone;
+        robot.turret.overrideTurret(launchZone);
 
         buildPaths();
 
         SequentialCommandGroup autonomousSequence = new SequentialCommandGroup(
                 new InstantCommand(() -> robot.turret.shouldAim = true),
+                new InstantCommand(()->robot.turret.setOverride(true)),
                 new InstantCommand(() -> robot.launcher.setFlap(true)),
                 new FollowPathCommand(follower, toLaunch, true),
                 new ShootBalls(),
-
 
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
                 new InstantCommand(() -> robot.intake.intake(true)),
 
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
-                new FollowPathCommand(follower, toRow2).interruptOn(robot.intake.supplier),
-                new WaitFull(),
                 new InstantCommand(Intake::intakeDown),
+                new FollowPathCommand(follower, toRow2).interruptOn(robot.intake.supplier),
 
-                new FollowPathCommand(follower, toLaunchZoneRow2)
-                        .halfWay(
-                                new InstantCommand(() -> robot.intake.intake(false))
-                        ),
+                new WaitCommand(200),
+                new FollowPathCommand(follower, toLaunchZoneRow2),
+                new InstantCommand(() -> robot.intake.intake(false)),
                 new WaitCommand(200),
                 new ShootBalls(),
 
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new InstantCommand(Intake::intakeDownDown),
                 new FollowPathCommand(follower, toGate).withTimeout(3000),
-                new FollowPathCommand(follower, tolaunchGate),
+                new InstantCommand(Intake::intakeDown),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new WaitFull(),
+                new WaitFull(),
+                new InstantCommand(() -> robot.intake.intake(false)),
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, tolaunchGate),
+                new ShootBalls(),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+
+
+
+
+                new FollowPathCommand(follower, toGate).withTimeout(3000),
+                new FollowPathCommand(follower, gateIn).withTimeout(400),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new WaitFull(),
+                new WaitFull(),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, tolaunchGate),
+                new ShootBalls(),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+
                 new FollowPathCommand(follower,toRow3).halfWay(
                         new InstantCommand(() -> robot.intake.intake(true))).interruptOn(robot.intake.supplier),
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
+
                 new WaitFull(),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
                 new FollowPathCommand(follower,toLaunchZoneRow3, true).halfWay(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))),
                 new WaitCommand(200),
                 new ShootBalls(),
+
                 new InstantCommand(() -> robot.intake.intake(true)),
                 new FollowPathCommand(follower,toRow1).interruptOn(robot.intake.supplier),
                 new WaitFull(),
@@ -322,28 +321,7 @@ public class CloseZoneAuto4 extends CommandOpMode {
                 new FollowPathCommand(follower,toLaunchZoneRow1, true).halfWay(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))),
 
                 new ShootBalls(),
-                new TurnToCommand(follower,Math.toRadians(beckyHead)).withTimeout(100),
-                new FollowPathCommand(follower, GoIn).halfWay(new InstantCommand(()->robot.intake.intake(true))).withTimeout(3600).interruptOn(robot.intake.supplier),
-                new FollowPathCommand(follower, goBacky).interruptOn(robot.intake.supplier).withTimeout(600),
-                new FollowPathCommand(follower, goBecky).interruptOn(robot.intake.supplier).withTimeout(600),
-                new WaitFull(),
-                new FollowPathCommand(follower, GoBack),
-                new InstantCommand(() -> robot.launcher.setFlap(false)),
-                new TurnToCommand(follower,Math.toRadians(mijo)),
-                new WaitCommand(200),
-                new SequentialCommandGroup(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
-                new FollowPathCommand(follower, GoIn).halfWay(new InstantCommand(()->robot.intake.intake(true))).withTimeout(3600).interruptOn(robot.intake.supplier),
-                new FollowPathCommand(follower, goBacky).interruptOn(robot.intake.supplier).withTimeout(600),
-                new FollowPathCommand(follower, goBecky).interruptOn(robot.intake.supplier).withTimeout(600),
-                new WaitFull(),
-                new FollowPathCommand(follower, GoBack),
-                new InstantCommand(() -> robot.launcher.setFlap(false)),
-                new TurnToCommand(follower,Math.toRadians(mijo)),
-                new WaitCommand(200),
-                new SequentialCommandGroup(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))).alongWith(new SequentialCommandGroup(new WaitUntilCommand(nearEnd),new ShootBalls())),
-                new FollowPathCommand(follower, GoIn).halfWay(new InstantCommand(()->robot.intake.intake(true))).withTimeout(2000)
-
-
+                new TurnToCommand(follower,Math.toRadians(beckyHead)).withTimeout(100)
         );
 
         schedule(autonomousSequence);
@@ -356,6 +334,10 @@ public class CloseZoneAuto4 extends CommandOpMode {
         robot.updateLoop();
         follower.setMaxPower(1);
         robot.intake.runningAuto = true;
+        telemetry.addData("Turr", robot.turret.forcedPos);
+
+        telemetry.addData("pose", robot.follower.getPose());
+        telemetry.update();
         // Intake.intakeDown();
     }
 

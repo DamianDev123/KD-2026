@@ -38,7 +38,6 @@ public class Scheduler{
         return instance;
     }
     public void periodic() {
-        robot.telemetryData.addData("Commands",scheduledCommands.toString());
         for(Subsystem subsystem: subsystems.keySet()){
             double start = elapsedTime.milliseconds();
             subsystem.periodic();
