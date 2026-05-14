@@ -92,7 +92,7 @@ class Limelight : SubsystemBase() {
     }
     fun kalman() {
         follower.update()
-
+//
         //kalman implementation:
         truePose = poseFilter.updateFilteredVelocities(follower.pose)
         // if(Constants.ALLIANCE_COLOR == "RED") return
@@ -108,7 +108,7 @@ class Limelight : SubsystemBase() {
         truePose = fP;
 
         Drawing.drawRobot(follower.pose)
-
+//
 //        follower.pose = Pose(
 //            kx.x,
 //            ky.x,

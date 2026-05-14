@@ -30,6 +30,7 @@ public class Constants {
     public static double LAUNCHER_MAX_VELOCITY = 1900; // Ticks/second
 
     public static boolean autoInitialized = false;
+    public static boolean telop = false;
     public static boolean shootingWhileMoving = false;
     public static Double NearDistance = 5.0;
     public enum OpModeType {

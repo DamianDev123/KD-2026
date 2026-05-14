@@ -19,7 +19,7 @@ import dev.nextftc.control.feedback.PIDCoefficients;
 import dev.nextftc.control.feedforward.BasicFeedforwardParameters;
 @Configurable
 public class Launcher extends SubsystemBase {
-    public static PIDCoefficients FLYWHEEL_PID_COEFFICIENTS = new PIDCoefficients(0.008, 0, 0); // Coefficients for ticks
+    public static PIDCoefficients FLYWHEEL_PID_COEFFICIENTS = new PIDCoefficients(0.01, 0, 0); // Coefficients for ticks
 
     public static PIDCoefficients FLYWHEEL_PID_COEFFICIENTS2 = new PIDCoefficients(0.001, 0, 0); // Coefficients for ticks
     public static BasicFeedforwardParameters FLYWHEEL_FF_COEFFICIENTS = new BasicFeedforwardParameters
@@ -160,7 +160,7 @@ public class Launcher extends SubsystemBase {
 
     }
     public double getTicksFromDist(double x){
-        return 7.62505*x+905.83463;
+        return 7.62505*x+905.83463+60;
     }
     public double getFlywheelTicksFromVelocity(double v){
         return com.pedropathing.math.MathFunctions.clamp(5.89673*v+39.12313, 900,Constants.LAUNCHER_MAX_VELOCITY);

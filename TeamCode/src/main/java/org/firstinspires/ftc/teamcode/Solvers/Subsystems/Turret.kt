@@ -30,8 +30,8 @@ class Turret : Subsystem() {
 
         @JvmField var targetAngle = 90.0;
 
-        @JvmField var offsetB = 0.0;
-        @JvmField var offsetR = 0.0;
+        @JvmField var offsetB = 15.0;
+        @JvmField var offsetR = 25.0;
         @JvmField var offsetRBack = -0.0;
         @JvmField var headingOffset = 0.0;
         @JvmField var xOffset = 0.0
@@ -119,7 +119,7 @@ class Turret : Subsystem() {
         var currentP = robot.limelight.truePose;
         val mu = atan2(yScalar(robot.PredictedGoalPose.y - currentP.y), xScalar(robot.PredictedGoalPose.x - currentP.x))
         val deltaHeading = mu-robot.pose.heading
-        return headingScalar(Math.toDegrees(deltaHeading))
+        return Math.toDegrees(deltaHeading)
     }
     fun normalizeDegrees(angle: Double): Double {
         var angle = angle % 360;

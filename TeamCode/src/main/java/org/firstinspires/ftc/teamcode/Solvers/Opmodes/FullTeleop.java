@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Solvers.Opmodes;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.robotcore.external.Supplier;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Globals.Constants;
 import org.firstinspires.ftc.teamcode.Globals.Robot;
+import org.firstinspires.ftc.teamcode.Solvers.Opmodes.WorkingAuto.CloseZoneAuto5;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Filter;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Launcher;
@@ -32,6 +34,10 @@ import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Storage;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Turret;
 import org.firstinspires.ftc.teamcode.TelemetryImplUpstreamSubmission;
 import static org.firstinspires.ftc.teamcode.Globals.Constants.*;
+import static org.firstinspires.ftc.teamcode.Solvers.Opmodes.WorkingAuto.CloseZoneAuto5.cp;
+import static org.firstinspires.ftc.teamcode.Solvers.Opmodes.WorkingAuto.CloseZoneAuto5.gatein;
+import static org.firstinspires.ftc.teamcode.Solvers.Opmodes.WorkingAuto.CloseZoneAuto5.launchZone;
+import static org.firstinspires.ftc.teamcode.Solvers.Opmodes.WorkingAuto.CloseZoneAuto5.ss;
 
 import android.graphics.Color;
 import android.util.Log;
@@ -69,6 +75,11 @@ public class FullTeleop extends CommandOpMode {
     Pose holdPointP = new Pose();
     boolean followerChanged = false;
     Filter loopTime = new Filter();
+    private Supplier<PathChain> toGate;
+    private Supplier<PathChain> gateIn;
+    private Supplier<PathChain> toLaunch;
+    private Pose launch = new Pose(76.203, 79.630);
+    private boolean automatedDrive;
     @Override
     public void initialize() {
         robot.telemetry = telemetry;
@@ -81,7 +92,7 @@ public class FullTeleop extends CommandOpMode {
         }
         Constants.OP_MODE_TYPE = Constants.OpModeType.TELEOP;
         robot.init(hardwareMap,follower);
-        driver = new GamepadEx(gamepad1);
+        driver = new GamepadEx(gamepad2);
         operator = new GamepadEx(gamepad2);
         follower.startTeleOpDrive();
         for(LynxModule hub : robot.hubs){
@@ -120,16 +131,60 @@ public class FullTeleop extends CommandOpMode {
                 .build();
         robot.turret.inAuto = false;
         Limelight.Companion.createFollower(hardwareMap);
+        toGate = () -> follower.pathBuilder() //Lazy Curve Generation
+                .addPath(new Path(new BezierLine(follower::getPose, CloseZoneAuto5.gate)))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(30), 0.8))
+                .build();
+        gateIn = () -> follower.pathBuilder().addPath(
+                        new BezierCurve(
+                                follower::getPose,
+                                cp,
+                                gatein
+                        )
+                ).setLinearHeadingInterpolation(
+                        Math.toRadians(30),
+                        Math.toRadians(30))
+                .build();
+        toLaunch = () -> follower.pathBuilder().addPath(
+                        new BezierLine(
+                                follower::getPose,
+                                launch
+                        )
+                ).setTangentHeadingInterpolation()
+                .setReversed()
+                .build();
+
+
     }
     boolean intaking = false;
     boolean initialized = false;
+    int step = 0;
+    int maxStep = 5;
     boolean setDown = false;
+    boolean intakingS = false;
+    public double scaleInput(double input) {
+        // 1. Apply Deadzone (ignore tiny inputs)
+        if (Math.abs(input) < 0.05) {
+            return 0.0;
+        }
+
+        // 2. Cubic Scaling (gives more control at low speeds)
+        // Formula: input * |input| * |input| or Math.pow(input, 3)
+        double scaled = Math.pow(input, 3);
+
+        // 3. Max Power Threshold (the "0.9 to 1.0" fix)
+        if (Math.abs(scaled) > 0.90) {
+            return Math.signum(scaled);
+        }
+
+        return scaled;
+    }
     @Override
     public void run() {
-
+        telop = true;
         Limelight.autoRunning = false;
         if(Limelight.followerCreated && !followerChanged){
-           // follower = Limelight.follower;
+            // follower = Limelight.follower;
             followerChanged = true;
         }
         robot.profiler.start("Full Loop");
@@ -182,13 +237,25 @@ public class FullTeleop extends CommandOpMode {
         Launcher.activeControl = true;
         shooting = Intaking && Launcher.isFlapOpen && !robot.storage.emptyF;
         double offset = REDOffset;
-        if(ALLIANCE_COLOR == "BLUE")
+        if(Objects.equals(ALLIANCE_COLOR, "BLUE"))
             offset = BLUEOffset;
         controller.setCoefficients(coefficients);
         controller.setSetPoint(offset);
         double tx = robot.limelight.getTx();
         telemetry.addData("dd", tx);
-        follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x+ (inFull&&robot.launcher.distance>40?controller.calculate(tx):0), true);
+        if(!automatedDrive)
+            if (Objects.equals(ALLIANCE_COLOR, "RED"))
+                // In your loop:
+                follower.setTeleOpDrive(
+                        scaleInput(-gamepad2.left_stick_y),
+                        scaleInput(-gamepad2.left_stick_x),
+                        scaleInput(-gamepad2.right_stick_x),
+                        true
+                );
+            else
+                follower.setTeleOpDrive(gamepad2.left_stick_y, gamepad2.left_stick_x, -gamepad2.right_stick_x, true);
+
+        //follower.setTeleOpDrive(-gamepad2.left_stick_y, -gamepad2.left_stick_x, -gamepad2.right_stick_x+ (inFull&&robot.launcher.distance>40?controller.calculate(tx):0), true);
 
         if(operator.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
             robot.storage.resetFull();
@@ -206,9 +273,6 @@ public class FullTeleop extends CommandOpMode {
             Turret.offsetB -= 1;
             Turret.offsetR -= 1;
         }
-        if(operator.getButton(GamepadKeys.Button.DPAD_UP)) {
-            Launcher.distanceOffset += 1;
-        }
         if(operator.getButton(GamepadKeys.Button.DPAD_DOWN)){
             Launcher.distanceOffset -= 1;
         }
@@ -223,6 +287,47 @@ public class FullTeleop extends CommandOpMode {
             autoParking = false;
         robot.tilt.set(driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER));
         robot.profiler.end("Full Loop");
+        if(automatedDrive && (!follower.isBusy())){
+            step+=1;
+            if(step <=maxStep){
+                if(step==1){
+                    intakingS = true;
+                    follower.followPath(gateIn.get());
+                    automatedDrive = true;
+                }
+                if(step==2){
+                    follower.followPath(toLaunch.get());
+                    automatedDrive = true;
+                }
+                if(step==3){
+                    follower.turnTo(Math.toRadians(30));
+                    automatedDrive = true;
+                }
+            }else {
+                follower.startTeleopDrive();
+                automatedDrive = false;
+                step = 0;
+            }
+        }
+        if(intakingS && Storage.full){
+            step+=1;
+            intakingS = false;
+        }
+        if(operator.getButton(GamepadKeys.Button.DPAD_DOWN)){
+            follower.followPath(toLaunch.get());
+            step = maxStep-3;
+            automatedDrive = true;
+        }
+        if(operator.getButton(GamepadKeys.Button.RIGHT_BUMPER)){
+            follower.startTeleopDrive();
+            automatedDrive = false;
+            step = 0;
+        }
+        if(operator.getButton(GamepadKeys.Button.DPAD_UP)){
+            follower.followPath(toGate.get());
+            step = 0;
+            automatedDrive = true;
+        }
     }
 
     @Override

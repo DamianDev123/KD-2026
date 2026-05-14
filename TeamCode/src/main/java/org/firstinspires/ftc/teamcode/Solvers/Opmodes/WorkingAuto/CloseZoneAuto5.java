@@ -27,6 +27,8 @@ import org.firstinspires.ftc.teamcode.Solvers.Controllers.FollowPathCommand;
 import org.firstinspires.ftc.teamcode.Solvers.Controllers.WaitFull;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Limelight;
+import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Storage;
+import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Turret;
 import org.opencv.core.Mat;
 
 import java.util.Objects;
@@ -50,15 +52,15 @@ public class CloseZoneAuto5 extends CommandOpMode {
     /* ------------------- Base Poses ------------------- */
 
     private Pose startPose   = new Pose(118, 130.5, Math.toRadians(38));
-    private Pose launchZone  = new Pose(87, 89);
+    public static Pose launchZone  = new Pose(87, 89);
     private Pose row1        = new Pose(139.000, 36.500);
     private Pose row1End     = new Pose(120.500, 35.500);
     private Pose row2        = new Pose(134.000, 56);
     private Pose row2End     = new Pose(128.500, 59.500);
-    private Pose row3        = new Pose(127.000, 87);
+    private Pose row3        = new Pose(130.000, 87);
     private Pose row3End     = new Pose(128.500, 83.500);
-    private Pose gate        = new Pose(126 , 70);
-    private Pose gatein        = new Pose(129.5 , 56);
+    public static Pose gate        = new Pose(130 , 64);
+    public static Pose gatein        = new Pose(130 , 56);
 
 
     /* ------------------- Control Points ------------------- */
@@ -74,10 +76,10 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
     private Pose becky = new Pose(124, 14);
     private Pose backy = new Pose(132.179, 10.419);
-    private Pose cp = new Pose(111, 58.678517397882004);
+    public static Pose cp = new Pose(123, 58.678517397882004);
     private Pose posy = new Pose(124, 57);
     private Pose pos = new Pose(80, 70);
-    private Pose ss = new Pose(96.496, 52.888);
+    public static Pose ss = new Pose(96.496, 52.888);
     private Pose helpMe = new Pose(93, 83.365);
     private Pose omg = new Pose(100.370, 50.507);
     private double intakeHeading = 0.0;
@@ -134,10 +136,8 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
         toLaunch = follower.pathBuilder().addPath(
                 new BezierLine(startPose, launchZone)
-        ).setLinearHeadingInterpolation(
-                Math.toRadians(intakeHeading),
-                Math.toRadians(intakeHeading)
-        ).build();
+        ).setTangentHeadingInterpolation().setReversed()
+                .build();
 
         toRow3 = follower.pathBuilder().addPath(
                 new BezierCurve(launchZone, cpRow3Out, row3)
@@ -198,7 +198,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
                         gate
                 )
         ).setLinearHeadingInterpolation(
-                Math.toRadians(intakeHeading),
+                Math.toRadians(38),
                 Math.toRadians(intakeHeading)
         ).build();
         gateIn = follower.pathBuilder().addPath(
@@ -268,7 +268,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
                 new InstantCommand(() -> robot.turret.shouldAim = true),
                 new InstantCommand(()->robot.turret.setOverride(true)),
                 new InstantCommand(() -> robot.launcher.setFlap(true)),
-                new FollowPathCommand(follower, toLaunch, true),
+                new FollowPathCommand(follower, toLaunch),
                 new WaitCommand(200),
                 new ShootBalls(),
 
@@ -276,8 +276,10 @@ public class CloseZoneAuto5 extends CommandOpMode {
                 new InstantCommand(() -> robot.intake.intake(true)),
 
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
+
                 new FollowPathCommand(follower, toRow2).interruptOn(robot.intake.supplier),
                 new InstantCommand(Intake::intakeDown),
+                new InstantCommand(()-> Turret.offsetR=14),
 
                 new WaitCommand(200),
                 new FollowPathCommand(follower, toLaunchZoneRow2),
@@ -287,52 +289,52 @@ public class CloseZoneAuto5 extends CommandOpMode {
 
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
                 new FollowPathCommand(follower, toGate).withTimeout(3000),
+                new WaitCommand(250),
                 new FollowPathCommand(follower, gateIn).withTimeout(400),
                 new InstantCommand(() -> robot.intake.intake(true)),
-                new WaitFull(),
-                new WaitFull(),
+                new WaitFull().interruptOn(full),
+                new WaitFull().interruptOn(full),
                 new InstantCommand(() -> robot.intake.intake(false)),
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
                 new FollowPathCommand(follower, tolaunchGate),
                 new ShootBalls(),
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
 
-
-
-
-                new FollowPathCommand(follower, toGate).withTimeout(3000),
-                new FollowPathCommand(follower, gateIn).withTimeout(400),
-                new InstantCommand(() -> robot.intake.intake(true)),
-                new WaitFull(),
-                new WaitFull(),
-                new InstantCommand(() -> robot.intake.intake(false)),
-                new InstantCommand(() -> robot.launcher.setFlap(false)),
-                new FollowPathCommand(follower, tolaunchGate),
-                new ShootBalls(),
-
-                new InstantCommand(() -> robot.launcher.setFlap(false)),
-
-                new FollowPathCommand(follower, toGate).withTimeout(3000),
-                new FollowPathCommand(follower, gateIn).withTimeout(400),
-                new InstantCommand(() -> robot.intake.intake(true)),
-                new WaitFull(),
-                new WaitFull(),
-                new InstantCommand(() -> robot.intake.intake(false)),
-                new InstantCommand(() -> robot.launcher.setFlap(false)),
-                new FollowPathCommand(follower, tolaunchGate),
-                new ShootBalls(),
-
-                new InstantCommand(() -> robot.launcher.setFlap(false)),
 
                 new FollowPathCommand(follower,toRow3).halfWay(
                         new InstantCommand(() -> robot.intake.intake(true))).interruptOn(robot.intake.supplier),
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
 
-                new WaitFull(),
                 new InstantCommand(() -> robot.intake.intake(false)),
                 new InstantCommand(() -> robot.launcher.setFlap(false)),
                 new FollowPathCommand(follower,toLaunchZoneRow3, true).halfWay(new InstantCommand(()-> robot.intake.intake(false)),new InstantCommand(()-> robot.launcher.setFlap(true))),
                 new WaitCommand(200),
+                new ShootBalls(),
+
+
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, toGate).withTimeout(3000),
+                new WaitCommand(250),
+                new FollowPathCommand(follower, gateIn).withTimeout(400),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new WaitFull().interruptOn(full),
+                new WaitFull().interruptOn(full),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, tolaunchGate),
+                new ShootBalls(),
+
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+
+                new FollowPathCommand(follower, toGate).withTimeout(3000),
+                new WaitCommand(250),
+                new FollowPathCommand(follower, gateIn).withTimeout(400),
+                new InstantCommand(() -> robot.intake.intake(true)),
+                new WaitFull().interruptOn(full),
+                new WaitFull().interruptOn(full),
+                new InstantCommand(() -> robot.intake.intake(false)),
+                new InstantCommand(() -> robot.launcher.setFlap(false)),
+                new FollowPathCommand(follower, tolaunchGate),
                 new ShootBalls(),
 
                 new InstantCommand(() -> robot.intake.intake(true)),
@@ -353,7 +355,6 @@ public class CloseZoneAuto5 extends CommandOpMode {
     public void run() {
         super.run();
         robot.updateLoop();
-        follower.setMaxPower(1);
         robot.intake.runningAuto = true;
         telemetry.addData("Turr", robot.turret.forcedPos);
 
@@ -361,6 +362,7 @@ public class CloseZoneAuto5 extends CommandOpMode {
         telemetry.update();
         // Intake.intakeDown();
     }
+    public BooleanSupplier full = () -> Storage.full;
 
     @Override
     public void end() {
