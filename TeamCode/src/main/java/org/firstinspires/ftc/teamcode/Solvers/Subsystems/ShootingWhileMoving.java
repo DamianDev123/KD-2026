@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems;
 
-import com.bylazar.configurables.annotations.Configurable;
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-@Configurable
+@Config
 public class ShootingWhileMoving extends SubsystemBase {
 
     private final Robot robot = Robot.getInstance();

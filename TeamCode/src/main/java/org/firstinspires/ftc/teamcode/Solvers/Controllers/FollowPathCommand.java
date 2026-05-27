@@ -100,6 +100,6 @@ public class FollowPathCommand extends CommandBase {
     }
     @Override
     public boolean isFinished() {
-        return follower.getCurrentTValue()>0.9 ;
+        return follower.getCurrentTValue()>0.7 ;
     }
 }

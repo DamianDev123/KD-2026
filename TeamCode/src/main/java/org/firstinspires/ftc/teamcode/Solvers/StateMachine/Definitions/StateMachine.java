@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.Solvers.StateMachine.Definitions;
 
 import android.util.Log;
 
+
+import org.firstinspires.ftc.teamcode.Globals.Robot;
+
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +12,7 @@ import java.util.Objects;
 
 public interface StateMachine {
     Map<StateMachine, MachineData> MACHINES = new HashMap<>();
+    Robot robot = Robot.getInstance();
     class MachineData {
         Map<String, Method> states = new HashMap<>();
         Method currentState;
@@ -62,7 +66,10 @@ public interface StateMachine {
 
         MachineData data = MACHINES.get(this);
 
+
+
         assert data != null;
+        robot.telemetry.addData("In State: ", data.currentState.getName());
         if (data.currentState == null) {
             return;
         }
@@ -112,12 +119,10 @@ public interface StateMachine {
 
         assert data != null;
         Method next = data.states.get(name);
-
         if (next == null) {
             throw new RuntimeException("State not found: " + name);
         }
-        data.currentState = data.firstState;
-
+        data.currentState = next;
         data.stateStartTime = System.currentTimeMillis();
 
         data.justEntered = true;

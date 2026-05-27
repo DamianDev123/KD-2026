@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems
 
-import com.bylazar.configurables.annotations.Configurable
+import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.follower.Follower
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.limelightvision.LLResult
@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.helpers.controllers.FusionLocalizer
 import org.firstinspires.ftc.teamcode.next.filters.kalmanFilter
 import kotlin.math.PI
 
-@Configurable
+@Config
 class Limelight : SubsystemBase() {
 
 
@@ -107,7 +107,6 @@ class Limelight : SubsystemBase() {
         robot.follower.setY(fP.y);
         truePose = fP;
 
-        Drawing.drawRobot(follower.pose)
 //
 //        follower.pose = Pose(
 //            kx.x,
@@ -117,6 +116,11 @@ class Limelight : SubsystemBase() {
     }
 
     override fun periodic() {
-        kalman()
+        follower.update()
+        //kalman()
+
+    }
+    fun getOffset() : Double{
+        return grabResultData()?.tx ?: 0.0;
     }
 }

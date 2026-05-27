@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems
 
-import com.bylazar.configurables.annotations.Configurable
+import com.acmerobotics.dashboard.config.Config
 import com.pedropathing.follower.Follower
 import com.pedropathing.geometry.Pose
 import com.qualcomm.hardware.limelightvision.LLResult
@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.Solvers.Opmodes.Drawing
 import org.firstinspires.ftc.teamcode.helpers.controllers.Kalman
 import org.firstinspires.ftc.teamcode.next.filters.kalmanFilter
 
-@Configurable
+@Config
 class KalmanLL : SubsystemBase() {
 
     private val kx = Kalman(0.0, 0.5, q = 0.1)
@@ -138,7 +138,7 @@ class KalmanLL : SubsystemBase() {
         truePose = fP;
         */
 
-        Drawing.drawRobot(follower.pose)
+        Drawing.drawRobot(follower.pose, "#FFF")
 
 //        follower.pose = Pose(
 //            kx.x,

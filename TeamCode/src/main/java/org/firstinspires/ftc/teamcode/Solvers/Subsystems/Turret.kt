@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems
 
-import com.bylazar.configurables.annotations.Configurable
-import com.bylazar.telemetry.PanelsTelemetry
-import com.bylazar.telemetry.PanelsTelemetry.telemetry
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.config.Config
+import com.pedropathing.control.PIDFCoefficients
+import com.pedropathing.control.PIDFController
 import com.pedropathing.follower.Follower
 import com.pedropathing.geometry.Pose
 import com.pedropathing.math.MathFunctions
@@ -11,13 +12,20 @@ import com.seattlesolvers.solverslib.hardware.servos.ServoEx
 import org.firstinspires.ftc.teamcode.Globals.Constants
 import org.firstinspires.ftc.teamcode.Globals.Robot
 import org.firstinspires.ftc.teamcode.Solvers.CommandBase.Subsystem
+import org.firstinspires.ftc.teamcode.Solvers.Opmodes.testOp
+import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sign
 
-@Configurable
+@Config
 class Turret : Subsystem() {
     private val robot: Robot = Robot.getInstance()
     @JvmField
     var inAuto = true;
+
     var runningAuto = false;
     var override = false;
     @JvmField
@@ -25,15 +33,22 @@ class Turret : Subsystem() {
     @JvmField
     var forcedPos = Pose(0.0,0.0)
 
+    val velocity = (60/0.110)/2
+    var currentPosition = 0.0;
+    val posTimer = ElapsedTime();
+
     companion object {
         @JvmField var tuningOffset = false
 
-        @JvmField var targetAngle = 90.0;
+        @JvmField var expo = 2;
 
-        @JvmField var offsetB = 15.0;
-        @JvmField var offsetR = 25.0;
+
+        @JvmField var kv =0.002;
+        @JvmField var backWards = true;
+        @JvmField var offsetR = 0.0;
         @JvmField var offsetRBack = -0.0;
         @JvmField var headingOffset = 0.0;
+        @JvmField var llCoefficients = PIDFCoefficients(0.0,0.0,0.0,0.0);
         @JvmField var xOffset = 0.0
         @JvmField var yOffset = 0.0
     }
@@ -50,9 +65,12 @@ class Turret : Subsystem() {
     var shouldAim = false;
     @JvmField
     var toggle = true;
+    var controller = PIDFController(llCoefficients);
     init {
         elapsedTime.startTime()
         elapsedTime.reset()
+        posTimer.startTime();
+        posTimer.reset();
     }
     fun headingScalar(heading: Double) : Double{
         val x = ((heading + 180) % 360 + 360) % 360 - 180;
@@ -64,6 +82,7 @@ class Turret : Subsystem() {
 
         return x+xOffset;
     }
+    var degree = 0.0;
     fun yScalar(y: Double) : Double{
         robot.telemetry.addData("y", y)
         return y-yOffset;
@@ -74,26 +93,22 @@ class Turret : Subsystem() {
 
         robot.profiler.start("Turret Loop")
         var target = 90.0;
-        target = normalizeDegrees(-CalculateGoal()+90);
+        target = normalizeDegrees(-CalculateGoal());
         if(tuningOffset)
             target = 90.0;
             // 1. Find the "Range" (how many servo units represent 90 degrees)s
         target = Math.toDegrees(MathFunctions.normalizeAngle(Math.toRadians(target)));
-        if(target>180.0){
-            target = 0.0;
-        }
+        val o = 0.1;
+        val x = robot.launcher.distance;
+        val of = offsetR+0.000171925*x*x+0.15768*x-12.02042
+        //val of = (robot.limelight.getOffset()+currentPosition)-degree;
 
-        var of = offsetR
-        if(robot.intake.runningAuto )
-            of -= 10;
+        degree = -(((target)))+180-of;
 
-        if(Constants.ALLIANCE_COLOR == "BLUE"){
-            of = offsetB
-            if(robot.intake.runningAuto )
-                of += 10;
+        FtcDashboard.getInstance().telemetry.addData("FakeAngle:", degree)
+        FtcDashboard.getInstance().telemetry.addData("RealAngle", getPosition(degree))
 
-        }
-        var servoPosition = (((target+of)*(90.0/48.0))/(355))
+        val servoPosition = testOp.toServo(degree, backWards)
 
         turretServo1.set(servoPosition)
         turretServo2.set(servoPosition)
@@ -107,26 +122,40 @@ class Turret : Subsystem() {
 
         robot.profiler.end("Turret Loop")
 
-        robot.telemetry.addData("heading:", robot.follower.heading - 45)
+        robot.telemetry.addData("heading:", robot.follower.heading)
     }
     override fun periodic() {
         update()
+    }
+    fun getPosition(deg: Double) : Double{
+        val maxMovement = elapsedTime.milliseconds()*(velocity/1000)
+        val error = currentPosition-deg;
+        if(Math.abs(error) <= maxMovement){
+            currentPosition = deg;
+        }else {
+            currentPosition += sign(error) *maxMovement;
+        }
+        elapsedTime.reset()
+        return currentPosition;
     }
     fun overrideTurret(p: Pose){
         forcedPos = p;
     }
     fun CalculateGoal(): Double {
-        var currentP = robot.limelight.truePose;
-        val mu = atan2(yScalar(robot.PredictedGoalPose.y - currentP.y), xScalar(robot.PredictedGoalPose.x - currentP.x))
+        var currentP = robot.CurrentPose;
+        val mu = atan2((robot.GoalPose.y - currentP.y), (robot.GoalPose.x - currentP.x))
         val deltaHeading = mu-robot.pose.heading
-        return Math.toDegrees(deltaHeading)
+        return Math.toDegrees(deltaHeading)+180
+    }
+    fun getPositionAbs(): Double {
+        return testOp.toDegree(turretServo1.rawPosition,backWards);
     }
     fun normalizeDegrees(angle: Double): Double {
         var angle = angle % 360;
         if(angle>180){
             angle -=360
         }else if(angle <= -180){
-            angle+-360;
+            angle +=360;
         }
         return  angle;
     }

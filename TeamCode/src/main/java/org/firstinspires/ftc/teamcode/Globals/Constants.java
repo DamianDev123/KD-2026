@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Globals;
 //import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.configurables.annotations.Configurable;
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 
@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import dev.nextftc.control.feedback.PIDCoefficients;
 
-@Configurable
+@Config
 public class Constants {
     public static OpModeType OP_MODE_TYPE;
     public enum ZoneType {

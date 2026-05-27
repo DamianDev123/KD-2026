@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.Solvers.Subsystems;
 
-import com.bylazar.configurables.annotations.Configurable;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -10,7 +10,7 @@ import java.util.function.BooleanSupplier;
 
 import kotlin.jvm.JvmField;
 
-@Configurable
+@Config
 public class Intake extends SubsystemBase {
     private final Robot robot = Robot.getInstance();
     ElapsedTime elapsedTime2 = new ElapsedTime();
@@ -22,7 +22,7 @@ public class Intake extends SubsystemBase {
     public static double CurrentThreshold = 6.0;
     public static double tolerance = 50;
     public static double intakeUp = 0;
-    public static double intakeDown = 0.3;
+    public static double intakeDown = 0.2;
     public BooleanSupplier supplier = () -> Storage.full;
     Double current = 0.0;
     boolean lastResponse = true;
@@ -53,9 +53,33 @@ public class Intake extends SubsystemBase {
                 robot.intakeMotor.set(0);
             }
         }
-        robot.transferMotor.set((elapsedTime4.milliseconds()>50 || Launcher.isFlapOpen) && onoff ? -1 : 0);
+        robot.transferMotor.set((elapsedTime4.milliseconds()>50 || Launcher.isFlapOpen) && onoff ? -0.8 : 0);
 
         robot.intakeMotor.set(onoff ? Storage.full ? 0:-1 : 0);
+
+
+        if (full && Launcher.isFlapOpen && onoff) {
+            if (!startClear) {
+                elapsedTime3.startTime();
+                elapsedTime3.reset();
+            }
+            startClear = true;
+        }
+
+    }
+    public void intake(Boolean onoff,boolean s) {
+        if (Launcher.isFlapOpen) {
+            if(robot.launcher.flapOpen) {
+                robot.transferMotor.set(onoff ? -1 : 0);
+                robot.intakeMotor.set(onoff ? -1 : 0);
+            }else {
+                robot.transferMotor.set(0);
+                robot.intakeMotor.set(0);
+            }
+        }
+        robot.transferMotor.set((elapsedTime4.milliseconds()>50 || Launcher.isFlapOpen) && onoff ? -0.7 : 0);
+
+        robot.intakeMotor.set(onoff ? Storage.full ? 0:-0.7 : 0);
 
 
         if (full && Launcher.isFlapOpen && onoff) {

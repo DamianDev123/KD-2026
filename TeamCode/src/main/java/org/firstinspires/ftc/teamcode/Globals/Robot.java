@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.Globals;
 //
 //import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.opmodecontrol.ActiveOpMode;
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.ftc.localization.localizers.PinpointLocalizer;
+import com.pedropathing.geometry.CoordinateSystem;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -24,6 +26,7 @@ import com.skeletonarmy.marrow.zones.PolygonZone;
 import static org.firstinspires.ftc.teamcode.Globals.Constants.*;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.localizerConstants;
 
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -31,6 +34,7 @@ import androidx.annotation.NonNull;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.firstinspires.ftc.teamcode.Solvers.CommandBase.Scheduler;
+import org.firstinspires.ftc.teamcode.Solvers.Opmodes.Drawing;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.Launcher;
 import org.firstinspires.ftc.teamcode.Solvers.Subsystems.LedDriver;
@@ -76,6 +80,7 @@ public class Robot extends com.seattlesolvers.solverslib.command.Robot {
     public ServoEx turretServo2;
     public ServoEx intakeServo;
     public Motor.Encoder turretEncoder;
+
     public Pose GoalPose;
     public Pose CurrentPose;
 
@@ -113,7 +118,7 @@ hubs = allHubs;
         ex.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
         follower = _follower;
-        if(Objects.equals(ALLIANCE_COLOR, "BLUE")){
+        if(ALLIANCE_COLOR.equals("BLUE")){
             GoalPose = blueGoalPose;
         }else {
             GoalPose = redGoalPose;
@@ -166,7 +171,7 @@ hubs = allHubs;
         storage.stage2 = hwMap.get(DigitalChannel.class, "d4");
         storage.stage3 = hwMap.get(DigitalChannel.class, "d6");
         ledDriver = new LedDriver();
-        if(ALLIANCE_COLOR == "BLUE"){
+        if(Objects.equals(ALLIANCE_COLOR, "BLUE")){
             CurrentPose = poses.getStartFromFar().mirror();
         }else {
             CurrentPose = poses.getStartFromFar();
@@ -227,8 +232,18 @@ hubs = allHubs;
                 CurrentPose = follower.getPose();
             robotZone.setPosition(CurrentPose.getX(), CurrentPose.getY());
 
+        Drawing.drawDebug(follower);
+
+        Drawing.drawRobot(flip(FTCCoordinates.INSTANCE.convertFromPedro(CurrentPose)),"#FFF");
+        Drawing.drawGoal(follower.getPose(),"#FFF");
+        FtcDashboard.getInstance().getTelemetry().addData("fo", CurrentPose);
+        FtcDashboard.getInstance().getTelemetry().update();
+
         profiler.end("Update Loop");
       //  Drawing.drawRobot(new Pose(follower.getPose().getY(),follower.getPose().getX()),"#3F51B5");
+    }
+    Pose flip(Pose pose){
+        return new Pose(-pose.getX(),-pose.getY(),pose.getHeading()+Math.PI);
     }
     public boolean inZone(){
         return robotZone.isInside(closeLaunchZone) || robotZone.isInside(farLaunchZone);
